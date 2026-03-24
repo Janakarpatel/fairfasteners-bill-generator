@@ -19,7 +19,7 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
   return (
     <div
       id="invoice-preview"
-      className="bg-white shadow-sm border border-zinc-200 w-full max-w-[210mm] min-h-[297mm] flex flex-col text-[11px] text-zinc-900 leading-snug relative mx-auto"
+      className="bg-white border border-zinc-200 w-[210mm] h-[297mm] flex flex-col text-[11px] text-zinc-900 leading-snug relative mx-auto rounded-md"
     >
       {/* Header */}
       <div className="text-center p-4 border-b border-zinc-900">
@@ -45,8 +45,10 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
         </div>
       </div>
 
-      <div className="text-center border-b border-zinc-900 bg-zinc-50 py-1">
-        <span className="font-medium uppercase tracking-widest text-xs">Tax Invoice</span>
+      <div className="border-b border-zinc-900 bg-zinc-50 text-center py-1.5">
+        <span className="inline-block align-middle font-semibold uppercase text-[12px] tracking-[0.18em] leading-[1.1]">
+          Tax Invoice
+        </span>
       </div>
 
       {/* Meta & Client Grid */}

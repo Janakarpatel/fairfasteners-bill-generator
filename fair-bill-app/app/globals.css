@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --brand-primary: #1c5b59;
+  --brand-primary-hover: #174b49;
+  --brand-border: #1c5b59;
+  --brand-primary-soft: #F0F0F0;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -53,6 +60,14 @@ input[type="number"] {
     border: none;
     box-shadow: none;
     padding: 0;
+  }
+}
+
+/* Inline block for images */
+/* To resolve issue : https://github.com/parallax/jsPDF/issues/3532 of html2canvas shifting text downwards */
+@layer base {
+  img {
+    @apply inline-block;
   }
 }
 
