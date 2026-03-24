@@ -124,7 +124,7 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
           </thead>
           <tbody>
             {calculations.items.map((item, index) => (
-              <tr key={item.id} className="border-b border-zinc-200 last:border-0 align-top">
+              <tr key={item.id} className="border-b border-zinc-200 align-top">
                 <td className="p-2 border-r border-zinc-900 text-center">{index + 1}</td>
                 <td className="p-2 border-r border-zinc-900 whitespace-pre-wrap">
                   {item.description}
@@ -138,16 +138,6 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
                 <td className="p-2 text-right">{formatCurrency(item.amount).replace('₹', '')}</td>
               </tr>
             ))}
-            {/* Spacer row */}
-            <tr>
-              <td className="border-r border-zinc-900 py-4"></td>
-              <td className="border-r border-zinc-900"></td>
-              <td className="border-r border-zinc-900"></td>
-              <td className="border-r border-zinc-900"></td>
-              <td className="border-r border-zinc-900"></td>
-              <td className="border-r border-zinc-900"></td>
-              <td></td>
-            </tr>
           </tbody>
         </table>
       </div>
