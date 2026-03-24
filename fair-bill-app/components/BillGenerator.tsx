@@ -153,18 +153,18 @@ export default function BillGenerator() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-950">
+    <div className="flex flex-col h-screen bg-white">
       {/* Header */}
-      <header className="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <header className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-medium text-sm tracking-tight">
             FF
           </div>
           <div>
-            <h1 className="text-base font-medium tracking-tight text-zinc-50 leading-none">
+            <h1 className="text-base font-medium tracking-tight text-zinc-900 leading-none">
               Bill Generator
             </h1>
-            <p className="text-xs text-zinc-400 mt-1">Create and export professional invoices</p>
+            <p className="text-xs text-zinc-600 mt-1">Create and export professional invoices</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -187,21 +187,8 @@ export default function BillGenerator() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden flex flex-col md:flex-row">
         {/* LEFT: FORM */}
-        <div className="w-full md:w-[45%] lg:w-[40%] h-full overflow-y-auto border-r border-zinc-800 bg-zinc-900 p-6">
+        <div className="w-full md:w-[45%] lg:w-[40%] h-full overflow-y-auto border-r border-zinc-200 bg-white p-6">
           <div className="max-w-xl mx-auto flex flex-col gap-4 pb-20">
-
-            <Section title="Company Details" icon="solar:buildings-linear" defaultOpen={false}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Company Name" value={data.companyName} disabled className="col-span-full" />
-                <Textarea label="Address" value={data.companyAddress} disabled className="col-span-full" rows={2} />
-                <Input label="Mobile 1" value={data.companyMobile1} disabled />
-                <Input label="Mobile 2" value={data.companyMobile2} disabled />
-                <Input label="Email" type="email" value={data.companyEmail} disabled />
-                <Input label="Website" value={data.companyWebsite} disabled />
-                <Input label="GST No." value={data.companyGstNo} disabled />
-                <Input label="UDYAM No." value={data.companyUdyamNo} disabled />
-              </div>
-            </Section>
 
             <Section title="Invoice Metadata" icon="solar:bill-list-linear" defaultOpen={true}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -231,11 +218,11 @@ export default function BillGenerator() {
             <Section title="Line Items" icon="solar:box-linear" defaultOpen={true}>
               <div className="flex flex-col gap-6">
                 {data.lineItems.map((item) => (
-                  <div key={item.id} className="relative p-4 border border-zinc-700 bg-zinc-800 rounded-lg group">
+                  <div key={item.id} className="relative p-4 border border-zinc-200 bg-zinc-50 rounded-lg group">
                     {data.lineItems.length > 1 && (
                       <button
                         onClick={() => removeLineItem(item.id)}
-                        className="absolute -top-2.5 -right-2.5 w-6 h-6 bg-zinc-800 border border-zinc-700 rounded-full text-red-400 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900 hover:border-red-700"
+                        className="absolute -top-2.5 -right-2.5 w-6 h-6 bg-white border border-zinc-200 rounded-full text-red-600 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:border-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -296,7 +283,7 @@ export default function BillGenerator() {
         </div>
 
         {/* RIGHT: PREVIEW */}
-        <div className="w-full md:w-[55%] lg:w-[60%] h-full overflow-y-auto bg-zinc-950 p-4 md:p-8 flex justify-center">
+        <div className="w-full md:w-[55%] lg:w-[60%] h-full overflow-y-auto bg-zinc-100 p-4 md:p-8 flex justify-center">
           <BillTemplate data={data} calculations={calculations} />
         </div>
       </main>
