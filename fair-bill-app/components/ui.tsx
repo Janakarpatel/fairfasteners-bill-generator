@@ -13,8 +13,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm',
-        secondary: 'bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50 shadow-sm',
-        danger: 'bg-white text-red-600 border border-zinc-200 hover:bg-red-50 hover:border-red-200',
+        secondary: 'bg-zinc-100 text-zinc-900 border border-zinc-300 hover:bg-zinc-200 shadow-sm',
+        danger: 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300',
         ghost: 'bg-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100',
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
@@ -101,7 +101,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-300 dark:text-zinc-300">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
             {label}
           </label>
         )}
@@ -111,7 +111,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={value ?? ''}
           onChange={handleChange}
           className={cn(
-            'flex h-10 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-50 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}
           ref={ref}
@@ -142,7 +142,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-300 dark:text-zinc-300">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
             {label}
           </label>
         )}
@@ -152,7 +152,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           onChange={handleChange}
           rows={rows}
           className={cn(
-            'flex w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-50 ring-offset-background placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50 resize-y',
+            'flex w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
             className
           )}
           ref={ref}
@@ -179,19 +179,19 @@ export const Section = ({ title, icon, children, defaultOpen = false }: SectionP
 
   return (
     <CollapsiblePrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border border-zinc-700 rounded-lg bg-zinc-900 overflow-hidden shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="border border-zinc-200 rounded-lg bg-zinc-50 overflow-hidden shadow-sm">
         <CollapsiblePrimitive.Trigger asChild>
-          <button className="w-full flex items-center justify-between p-4 bg-zinc-800 hover:bg-zinc-700 transition-colors border-b border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700">
-            <div className="flex items-center gap-2.5 text-zinc-50 dark:text-zinc-50">
-              {iconComponent && <span className="flex items-center text-zinc-400 dark:text-zinc-400">{iconComponent}</span>}
+          <button className="w-full flex items-center justify-between p-4 bg-white hover:bg-zinc-100 transition-colors border-b border-zinc-200">
+            <div className="flex items-center gap-2.5 text-zinc-900">
+              {iconComponent && <span className="flex items-center text-zinc-600">{iconComponent}</span>}
               <span className="font-medium text-sm">{title}</span>
             </div>
             <ChevronDown
-              className={`h-5 w-5 text-zinc-400 transition-transform duration-200 dark:text-zinc-400 ${isOpen ? 'rotate-180' : ''}`}
+              className={`h-5 w-5 text-zinc-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
             />
           </button>
         </CollapsiblePrimitive.Trigger>
-        <CollapsiblePrimitive.Content className="p-4 bg-zinc-900 dark:bg-zinc-900">
+        <CollapsiblePrimitive.Content className="p-4 bg-zinc-50">
           {children}
         </CollapsiblePrimitive.Content>
       </div>
