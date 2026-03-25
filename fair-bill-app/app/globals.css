@@ -4,10 +4,45 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --brand-primary: #1c5b59;
+  --brand-primary-hover: #174b49;
+  --brand-border: #E5E5E5;
+  --brand-primary-soft: #F0F0F0;
+  --input-field-color: rgb(129, 131, 143);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
+}
+
+/* Hide scrollbar (while keeping scroll enabled) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Hide main window scrollbar */
+html {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {
@@ -53,6 +88,14 @@ input[type="number"] {
     border: none;
     box-shadow: none;
     padding: 0;
+  }
+}
+
+/* Inline block for images */
+/* To resolve issue : https://github.com/parallax/jsPDF/issues/3532 of html2canvas shifting text downwards */
+@layer base {
+  img {
+    @apply inline-block;
   }
 }
 

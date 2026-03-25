@@ -1,0 +1,20 @@
+{
+  "company": {
+    "name": "Fair Fasteners",
+    "address": "Plot No. 42, Industrial Estate, Phase II\nNew Delhi, 110020, India",
+    "mobile1": "+91 98765 43210",
+    "mobile2": "+91 11 2345 6789",
+    "email": "info@fairfasteners.com",
+    "website": "www.fairfasteners.com",
+    "gstNo": "07AAACF2345Q1Z8",
+    "udyamNo": "UDYAM-DL-01-1234567"
+  },
+  "defaults": {
+    "paymentTerms": "Due on Receipt",
+    "termsAndConditions": "1. Goods once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged if payment is delayed.",
+    "initialBillNo": "INV-001",
+    "cgstRate": 9,
+    "sgstRate": 9,
+    "igstRate": 0
+  }
+}
