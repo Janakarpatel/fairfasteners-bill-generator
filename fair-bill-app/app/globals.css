@@ -7,14 +7,25 @@
 :root {
   --brand-primary: #1c5b59;
   --brand-primary-hover: #174b49;
-  --brand-border: #1c5b59;
+  --brand-border: #E5E5E5;
   --brand-primary-soft: #F0F0F0;
+  --input-field-color: #7d7f83;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
+}
+
+/* Hide scrollbar (while keeping scroll enabled) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge legacy */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {

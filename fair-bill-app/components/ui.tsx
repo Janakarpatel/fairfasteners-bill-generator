@@ -100,7 +100,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--input-field-color)]">
             {label}
           </label>
         )}
@@ -141,7 +141,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--input-field-color)]">
             {label}
           </label>
         )}
@@ -175,7 +175,7 @@ export const Section = ({ title, icon, children }: SectionProps) => {
 
   return (
     <div className="bg-white overflow-visible">
-      <div className="w-full flex items-center py-2 border-b mb-4 border-[var(--brand-border)]">
+      <div className="w-full flex items-center py-2 mb-2">
         <div className="flex items-center gap-2 text-zinc-900">
           {iconComponent && <span className="flex items-center text-zinc-500">{iconComponent}</span>}
           <span className="font-semibold text-[18px] leading-none tracking-tight text-zinc-900">{title}</span>

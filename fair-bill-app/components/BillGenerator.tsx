@@ -24,6 +24,15 @@ export default function BillGenerator() {
   const [draggedLineItemId, setDraggedLineItemId] = useState<string | null>(null)
   const [dragOverLineItemId, setDragOverLineItemId] = useState<string | null>(null)
   const [openDateField, setOpenDateField] = useState<keyof BillData | null>(null)
+  const [showPreview, setShowPreview] = useState(true)
+
+  const handleReset = () => {
+    setIsExporting(false)
+    setDraggedLineItemId(null)
+    setDragOverLineItemId(null)
+    setOpenDateField(null)
+    setData(getInitialBillData())
+  }
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -64,21 +73,20 @@ export default function BillGenerator() {
     const value = data[field] as string
     return (
       <div className={`relative flex flex-col gap-2 ${className ?? ''}`} data-date-field-container="true">
-        <label className="text-sm font-medium leading-none text-zinc-900">{label}</label>
+        <label className="text-sm font-medium leading-none text-[var(--input-field-color)]">{label}</label>
         <button
           type="button"
-          className="flex h-10 w-full items-center justify-between rounded-md border border-[var(--brand-border)] bg-white px-3 text-sm text-zinc-900"
+          className="flex h-10 w-full items-center justify-start gap-3 rounded-md border border-[var(--brand-border)] bg-white px-3 text-sm text-zinc-900"
           onClick={() => setOpenDateField((prev) => (prev === field ? null : field))}
         >
-          <span>{value || 'Select date'}</span>
           <CalendarDays className="h-4 w-4 text-zinc-500" />
+          <span>{value || 'Select date'}</span>
         </button>
         {openDateField === field && (
-          <div className="absolute z-50 mt-2 rounded-md border border-[var(--brand-border)] bg-white shadow-sm">
+          <div className="absolute left-0 top-15 z-50 mt-1 rounded-md border border-[var(--brand-border)] bg-white shadow-sm">
             <Calendar
               mode="single"
               selected={parseDate(value)}
-              className="rounded-lg border border-[var(--brand-border)]"
               onSelect={(selectedDate) => {
                 if (!selectedDate) return
                 updateField(field, formatDateForInput(selectedDate) as BillData[keyof BillData])
@@ -171,17 +179,17 @@ export default function BillGenerator() {
   }
 
   return (
-    <div className="h-screen bg-white">
-      <main className="h-full border border-[var(--brand-border)] bg-white flex flex-col">
+    <div className="h-screen bg-[var(--brand-primary)] p-4 shadow-lg">
+      <main className="h-full overflow-hidden rounded-lg border border-[var(--brand-border)] bg-white flex flex-col shadow-sm">
         {/* TOP NAVBAR */}
-        <header className="h-14 border-b border-[var(--brand-border)] bg-white px-6 py-8 flex items-center justify-between">
+        <header className="h-14 border-b border-[var(--brand-border)] bg-white px-6 py-9 flex items-center justify-between">
           <div className="h-9 flex gap-3 items-center justify-center">
             <img
               src="/company_logo.svg"
               alt="Fair Fasteners logo"
               className="h-7 w-auto object-contain"
             />
-            <span className="h-7 w-px border-l border-[var(--brand-border)]" />
+            <span className="h-7 w-[1px] border border-black" />
             <img
               src="/invoice_logo.svg"
               alt="Invoice logo"
@@ -196,14 +204,16 @@ export default function BillGenerator() {
 
         <div className="flex-1 min-h-0 flex">
           {/* LEFT: FORM */}
-          <div className="w-[45%] h-full overflow-y-auto border-r border-[var(--brand-border)] bg-white p-5 md:p-6">
-          <div className="w-full flex flex-col gap-3">
+          <div
+            className={`${showPreview ? "w-[45%] border-r border-[var(--brand-border)]" : "w-full"} h-full overflow-y-auto hide-scrollbar bg-white pt-5 px-0 pb-0 md:pt-6 md:px-0 md:pb-0`}
+          >
+          <div className="w-full flex flex-col gap-3 px-5 md:px-6">
             <div className="mb-1">
               <h1 className="text-2xl font-semibold">Create New Invoice</h1>
               <p className="text-sm text-zinc-500">Fill in invoice details</p>
             </div>
 
-            <Section title="Invoice Metadata" icon="solar:bill-list-linear">
+            <Section title="Invoice Details" icon="solar:bill-list-linear">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input label="Bill No." value={data.billNo} onChange={(v) => updateField('billNo', v as string)} />
                 {renderDateField('Bill Date', 'billDate')}
@@ -235,82 +245,132 @@ export default function BillGenerator() {
             </Section>
 
             <Section title="Line Items" icon="solar:box-linear">
-              <div className="flex flex-col gap-6">
-                {data.lineItems.map((item) => (
-                  <div
-                    key={item.id}
-                    draggable
-                    onDragStart={(e) => {
-                      setDraggedLineItemId(item.id)
-                      e.dataTransfer.effectAllowed = 'move'
-                      // Show full card ghost image instead of just the drag handle.
-                      e.dataTransfer.setDragImage(e.currentTarget, 20, 20)
-                    }}
-                    onDragEnd={() => {
-                      setDraggedLineItemId(null)
-                      setDragOverLineItemId(null)
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      e.dataTransfer.dropEffect = 'move'
-                      setDragOverLineItemId(item.id)
-                    }}
-                    onDragLeave={() => setDragOverLineItemId((prev) => (prev === item.id ? null : prev))}
-                    onDrop={() => {
-                      if (draggedLineItemId) {
-                        reorderLineItems(draggedLineItemId, item.id)
-                      }
-                      setDragOverLineItemId(null)
-                      setDraggedLineItemId(null)
-                    }}
-                    data-dragging={draggedLineItemId === item.id}
-                    data-dragover={dragOverLineItemId === item.id}
-                    className={`relative p-4 border bg-white rounded-lg group transition-all duration-200 cursor-grab ${
-                      draggedLineItemId === item.id ? 'opacity-60 scale-[0.99]' : 'opacity-100'
-                    } ${dragOverLineItemId === item.id ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5' : 'border-[var(--brand-border)]'}`}
-                  >
-                    <button
-                      type="button"
-                      className="absolute top-1/2 -translate-y-1/2 left-2 w-7 h-7 bg-white rounded-md text-zinc-500 flex items-center justify-center hover:bg-zinc-100 transition-colors pointer-events-none"
-                      aria-label="Drag to reorder item"
-                      title="Drag to reorder"
+              <div className="border border-[var(--brand-border)] rounded-lg overflow-hidden bg-white">
+                {/* Header */}
+                <div className="grid grid-cols-16 gap-3 px-3 py-2 text-xs font-medium text-zinc-500 bg-zinc-50 border-b border-[var(--brand-border)]">
+                  <div className="col-span-1" />
+                  <div className="col-span-6">Description of Goods</div>
+                  <div className="col-span-2">HSN</div>
+                  <div className="col-span-2">Bags</div>
+                  <div className="col-span-2">Qty</div>
+                  <div className="col-span-2">Rate</div>
+                  <div className="col-span-1" />
+                </div>
+
+                {/* Rows */}
+                <div className="flex flex-col">
+                  {data.lineItems.map((item) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggedLineItemId(item.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setDragImage(e.currentTarget, 20, 20)
+                      }}
+                      onDragEnd={() => {
+                        setDraggedLineItemId(null)
+                        setDragOverLineItemId(null)
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        e.dataTransfer.dropEffect = 'move'
+                        setDragOverLineItemId(item.id)
+                      }}
+                      onDragLeave={() => setDragOverLineItemId((prev) => (prev === item.id ? null : prev))}
+                      onDrop={() => {
+                        if (draggedLineItemId) {
+                          reorderLineItems(draggedLineItemId, item.id)
+                        }
+                        setDragOverLineItemId(null)
+                        setDraggedLineItemId(null)
+                      }}
+                      data-dragging={draggedLineItemId === item.id}
+                      data-dragover={dragOverLineItemId === item.id}
+                      className={`grid grid-cols-16 gap-3 items-center px-3 py-4 cursor-grab transition-all duration-200 bg-white border-b border-[var(--brand-border)] ${
+                        draggedLineItemId === item.id ? 'opacity-60 scale-[0.99]' : 'opacity-100'
+                      } ${dragOverLineItemId === item.id ? 'bg-[var(--brand-primary)]/5 border-b-[var(--brand-primary)]' : ''}`}
                     >
-                      <GripVertical className="w-4 h-4" />
-                    </button>
-                    {data.lineItems.length > 1 && (
-                      <button
-                        onClick={() => removeLineItem(item.id)}
-                        className="absolute top-2 right-2 w-7 h-7 bg-white border border-[var(--brand-border)] rounded-full text-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                    <div className="grid grid-cols-12 gap-3 pl-10">
-                      <div className="col-span-12">
+                      {/* Drag handle */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        <GripVertical className="w-4 h-4 text-zinc-500" />
+                      </div>
+
+                      {/* Description */}
+                      <div className="col-span-6">
                         <Input
                           placeholder="Description of Goods"
                           value={item.description}
                           onChange={(v) => updateLineItem(item.id, 'description', v as string)}
                         />
                       </div>
-                      <div className="col-span-4">
-                        <Input label="HSN" value={item.hsnCode} onChange={(v) => updateLineItem(item.id, 'hsnCode', v as string)} />
-                      </div>
+
+                      {/* HSN */}
                       <div className="col-span-2">
-                        <Input label="Bags" type="number" value={item.bags} onChange={(v) => updateLineItem(item.id, 'bags', v as number)} />
+                        <Input
+                          placeholder="HSN"
+                          value={item.hsnCode}
+                          onChange={(v) => updateLineItem(item.id, 'hsnCode', v as string)}
+                        />
                       </div>
-                      <div className="col-span-3">
-                        <Input label="Qty" type="number" value={item.quantity} onChange={(v) => updateLineItem(item.id, 'quantity', v as number)} />
+
+                      {/* Bags */}
+                      <div className="col-span-2">
+                        <Input
+                          placeholder="Bags"
+                          type="number"
+                          value={item.bags}
+                          onChange={(v) => updateLineItem(item.id, 'bags', v as number)}
+                        />
                       </div>
-                      <div className="col-span-3">
-                        <Input label="Rate" type="number" value={item.rate} onChange={(v) => updateLineItem(item.id, 'rate', v as number)} />
+
+                      {/* Qty */}
+                      <div className="col-span-2">
+                        <Input
+                          placeholder="Qty"
+                          type="number"
+                          value={item.quantity}
+                          onChange={(v) => updateLineItem(item.id, 'quantity', v as number)}
+                        />
+                      </div>
+
+                      {/* Rate */}
+                      <div className="col-span-2">
+                        <Input
+                          placeholder="Rate"
+                          type="number"
+                          value={item.rate}
+                          onChange={(v) => updateLineItem(item.id, 'rate', v as number)}
+                        />
+                      </div>
+
+                      {/* Delete */}
+                      <div className="col-span-1 flex items-center justify-center">
+                        {data.lineItems.length > 1 && (
+                          <button
+                            onClick={() => removeLineItem(item.id)}
+                            className="w-7 h-7 bg-white border border-[var(--brand-border)] rounded-full text-red-600 flex items-center justify-center hover:bg-red-50"
+                            aria-label="Remove line item"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
-                <Button variant="secondary" onClick={addLineItem} icon="solar:add-circle-linear" className="w-full bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)]">
-                  Add Line Item
-                </Button>
+                  ))}
+                </div>
+
+                <div className="bg-white px-0 py-0">
+                  <Button
+                    variant="ghost"
+                    onClick={addLineItem}
+                    icon="solar:add-circle-linear"
+                    className="w-full justify-start text-[14px] text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/5"
+                  >
+                    Add item
+                  </Button>
+                </div>
               </div>
             </Section>
 
@@ -334,10 +394,28 @@ export default function BillGenerator() {
             </Section>
 
           </div>
+
+          <div className="sticky bottom-0 z-20 w-full px-3 py-3 border-t border-[var(--brand-border)] bg-white/95 backdrop-blur flex justify-end gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleReset}
+              className="h-7 px-3 text-sm justify-center bg-white text-zinc-900 hover:bg-zinc-50 border border-[var(--brand-border)]"
+            >
+              Reset
+            </Button>
+            {/* <Button
+              variant="outline"
+              onClick={() => setShowPreview((prev) => !prev)}
+              className="h-7 px-3 text-sm justify-center border-[var(--brand-border)] text-zinc-900 hover:bg-zinc-100"
+            >
+              {showPreview ? 'Hide Preview' : 'Show Preview'}
+            </Button> */}
+          </div>
           </div>
 
           {/* RIGHT: PREVIEW */}
-          <div className="w-[55%] h-full overflow-y-auto bg-[var(--brand-primary-soft)]">
+          {showPreview && (
+            <div className="w-[55%] h-full overflow-y-auto bg-[var(--brand-primary-soft)]">
             <div className="sticky top-0 z-10 border-b border-[var(--brand-border)] bg-white px-4 md:px-6 py-3 flex items-center justify-between">
               <h2 className="text-base font-semibold">Preview</h2>
               <div className="flex items-center gap-2">
@@ -345,7 +423,7 @@ export default function BillGenerator() {
                   variant="outline"
                   size="default"
                   onClick={() => window.print()}
-                className="h-9 border-[var(--brand-border)] bg-white px-4 text-zinc-700 hover:bg-zinc-50"
+                className="h-8 border-[var(--brand-border)] bg-white px-3 text-zinc-700 hover:bg-zinc-50"
                 >
                   <Printer className="h-4 w-4" />
                   Print
@@ -356,12 +434,12 @@ export default function BillGenerator() {
                     variant="default"
                     size="sm"
                     disabled={isExporting}
-                    className="h-9 px-0 overflow-hidden bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white border border-[var(--brand-border)]"
+                    className="h-8 px-0 overflow-hidden bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white border border-[var(--brand-border)]"
                   >
-                    <span className="px-4">{isExporting ? 'Generating...' : 'Download'}</span>
+                    <span className="px-3">{isExporting ? 'Generating...' : 'Download'}</span>
                     <span className="h-full w-px bg-white/35" />
-                    <span className="w-10 h-full flex items-center justify-center">
-                      <ChevronDown className="h-4 w-4" />
+                    <span className="w-9 h-full flex items-center justify-center">
+                      <ChevronDown className="h-3 w-3" />
                     </span>
                   </ShadButton>
                 </DropdownMenuTrigger>
@@ -375,7 +453,8 @@ export default function BillGenerator() {
             <div className="p-4 md:p-8 flex justify-center bg-[var(--brand-primary-soft)]">
               <BillTemplate data={data} calculations={calculations} />
             </div>
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
