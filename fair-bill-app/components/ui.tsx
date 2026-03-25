@@ -100,7 +100,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--input-field-color)]">
+          <label className="text-sm text-[var(--input-field-color)] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}
           </label>
         )}
@@ -141,7 +141,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--input-field-color)]">
+          <label className="text-sm text-[var(--input-field-color)] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}
           </label>
         )}

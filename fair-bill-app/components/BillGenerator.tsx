@@ -214,7 +214,7 @@ export default function BillGenerator() {
               <p className="text-sm text-zinc-500">Fill in invoice details</p>
             </div>
 
-            <Section title="Invoice Details" icon="solar:bill-list-linear">
+            <Section title="Invoice Details">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input label="Bill No." value={data.billNo} onChange={(v) => updateField('billNo', v as string)} />
                 {renderDateField('Bill Date', 'billDate')}

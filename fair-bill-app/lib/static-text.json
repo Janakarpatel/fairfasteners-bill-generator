@@ -13,6 +13,8 @@
     "paymentTerms": "Due on Receipt",
     "termsAndConditions": "1. Goods once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged if payment is delayed.",
     "initialBillNo": "INV-001",
-    "igstRate": 9
+    "cgstRate": 9,
+    "sgstRate": 9,
+    "igstRate": 0
   }
 }
