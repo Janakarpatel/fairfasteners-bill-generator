@@ -179,17 +179,17 @@ export default function BillGenerator() {
   }
 
   return (
-    <div className="h-screen bg-[var(--brand-primary)] p-4 shadow-lg">
-      <main className="h-full overflow-hidden rounded-lg border border-[var(--brand-border)] bg-white flex flex-col shadow-sm">
+    <div className="h-screen overflow-y-auto bg-[var(--brand-primary)] p-4 shadow-lg flex flex-col">
+      <main className="h-screen overflow-hidden rounded-lg border border-[var(--brand-border)] bg-white flex flex-col shadow-sm">
         {/* TOP NAVBAR */}
-        <header className="h-14 border-b border-[var(--brand-border)] bg-white px-6 py-9 flex items-center justify-between">
+        <header className="h-auto border-b border-[var(--brand-border)] bg-white px-6 py-3 flex items-center justify-between">
           <div className="h-9 flex gap-3 items-center justify-center">
-            <img
+            {/* <img
               src="/company_logo.svg"
               alt="Fair Fasteners logo"
               className="h-7 w-auto object-contain"
             />
-            <span className="h-7 w-[1px] border border-black" />
+            <span className="h-7 w-[1px] border border-black" /> */}
             <img
               src="/invoice_logo.svg"
               alt="Invoice logo"
@@ -205,6 +205,7 @@ export default function BillGenerator() {
         <div className="flex-1 min-h-0 flex">
           {/* LEFT: FORM */}
           <div
+            data-lenis-scroll="true"
             className={`${showPreview ? "w-[45%] border-r border-[var(--brand-border)]" : "w-full"} h-full overflow-y-auto hide-scrollbar bg-white pt-5 px-0 pb-0 md:pt-6 md:px-0 md:pb-0`}
           >
           <div className="w-full flex flex-col gap-3 px-5 md:px-6">
@@ -415,7 +416,10 @@ export default function BillGenerator() {
 
           {/* RIGHT: PREVIEW */}
           {showPreview && (
-            <div className="w-[55%] h-full overflow-y-auto bg-[var(--brand-primary-soft)]">
+            <div
+              data-lenis-scroll="true"
+              className="w-[55%] h-full overflow-y-auto bg-[var(--brand-primary-soft)]"
+            >
             <div className="sticky top-0 z-10 border-b border-[var(--brand-border)] bg-white px-4 md:px-6 py-3 flex items-center justify-between">
               <h2 className="text-base font-semibold">Preview</h2>
               <div className="flex items-center gap-2">
@@ -457,6 +461,7 @@ export default function BillGenerator() {
           )}
         </div>
       </main>
+      {/* footer moved to app/layout.tsx */}
     </div>
   )
 }
