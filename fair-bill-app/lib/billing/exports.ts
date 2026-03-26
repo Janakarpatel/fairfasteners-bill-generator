@@ -49,11 +49,12 @@ export const exportBillAsPdf = async (data: BillData) => {
     })
   }
 
+  
   const imgData = canvas.toDataURL('image/png')
   const pdf = new jsPDF('p', 'mm', 'a4')
-  const imgWidth = 210
-  const imgHeight = (canvas.height * imgWidth) / canvas.width
-  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+  const imgWidth = pdf.internal.pageSize.getWidth()
+  const imgHeight = pdf.internal.pageSize.getHeight()
+  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight)
   pdf.save(`Invoice_${data.billNo || 'Draft'}.pdf`)
 }
 

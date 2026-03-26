@@ -71,6 +71,11 @@ input[type="number"] {
 
 /* Print styles */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -84,7 +89,9 @@ input[type="number"] {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 210mm;
+    height: 297mm;
+    max-width: none;
     border: none;
     box-shadow: none;
     padding: 0;
