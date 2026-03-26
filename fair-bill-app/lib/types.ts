@@ -1,5 +1,7 @@
 // lib/types.ts
 
+import staticText from '@/lib/static-text.json'
+
 export interface LineItem {
   id: string
   description: string
@@ -60,20 +62,20 @@ export interface Calculations {
 }
 
 export const fixedCompanyData = {
-  companyName: 'Fair Fasteners',
-  companyAddress: 'Plot No. 42, Industrial Estate, Phase II\nNew Delhi, 110020, India',
-  companyMobile1: '+91 98765 43210',
-  companyMobile2: '+91 11 2345 6789',
-  companyEmail: 'info@fairfasteners.com',
-  companyWebsite: 'www.fairfasteners.com',
-  companyGstNo: '07AAACF2345Q1Z8',
-  companyUdyamNo: 'UDYAM-DL-01-1234567',
+  companyName: staticText.company.name,
+  companyAddress: staticText.company.address,
+  companyMobile1: staticText.company.mobile1,
+  companyMobile2: staticText.company.mobile2,
+  companyEmail: staticText.company.email,
+  companyWebsite: staticText.company.website,
+  companyGstNo: staticText.company.gstNo,
+  companyUdyamNo: staticText.company.udyamNo,
 }
 
 export const getInitialBillData = (): BillData => ({
   ...fixedCompanyData,
   bookNo: '',
-  billNo: 'INV-001',
+  billNo: staticText.defaults.initialBillNo,
   billDate: new Date().toISOString().split('T')[0],
   chNo: '',
   chDate: '',
@@ -91,14 +93,13 @@ export const getInitialBillData = (): BillData => ({
     { id: Date.now().toString(), description: '', hsnCode: '', bags: 0, quantity: 1, rate: 0 },
   ],
   freight: 0,
-  cgstRate: 0,
-  sgstRate: 0,
-  igstRate: 0,
-  paymentTerms: 'Due on Receipt',
+  cgstRate: staticText.defaults.cgstRate ?? 0,
+  sgstRate: staticText.defaults.sgstRate ?? 0,
+  igstRate: staticText.defaults.igstRate ?? 0,
+  paymentTerms: staticText.defaults.paymentTerms,
   bankName: '',
   bankBranch: '',
   bankAccountNo: '',
   bankIfscCode: '',
-  termsAndConditions:
-    '1. Goods once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged if payment is delayed.',
+  termsAndConditions: staticText.defaults.termsAndConditions,
 })

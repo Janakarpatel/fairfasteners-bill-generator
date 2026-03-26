@@ -1,8 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
-import { ChevronDown, Printer, FileText, HardDrive, Hourglass, Plus, Trash2, Building2, FileJson, Users, Package, Calculator, CreditCard } from 'lucide-react'
+import { Printer, FileText, HardDrive, Hourglass, Plus, Trash2, Building2, FileJson, Users, Package, Calculator, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -12,8 +11,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-zinc-900 text-white hover:bg-zinc-800 shadow-sm',
-        secondary: 'bg-zinc-100 text-zinc-900 border border-zinc-300 hover:bg-zinc-200 shadow-sm',
+        primary: 'bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)]',
+        secondary: 'bg-zinc-100 text-zinc-900 border border-[var(--brand-border)] hover:bg-zinc-200',
         danger: 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 hover:border-red-300',
         ghost: 'bg-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100',
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -101,7 +100,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
+          <label className="text-sm text-[var(--input-field-color)] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}
           </label>
         )}
@@ -111,7 +110,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={value ?? ''}
           onChange={handleChange}
           className={cn(
-            'flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}
           ref={ref}
@@ -142,7 +141,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900">
+          <label className="text-sm text-[var(--input-field-color)] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}
           </label>
         )}
@@ -152,7 +151,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           onChange={handleChange}
           rows={rows}
           className={cn(
-            'flex w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
+            'flex w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
             className
           )}
           ref={ref}
@@ -169,32 +168,20 @@ interface SectionProps {
   title: string
   icon?: string | React.ReactNode
   children: React.ReactNode
-  defaultOpen?: boolean
 }
 
-export const Section = ({ title, icon, children, defaultOpen = false }: SectionProps) => {
-  const [isOpen, setIsOpen] = React.useState(defaultOpen)
-  
+export const Section = ({ title, icon, children }: SectionProps) => {
   const iconComponent = typeof icon === 'string' ? getIconComponent(icon) : icon
 
   return (
-    <CollapsiblePrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border border-zinc-200 rounded-lg bg-zinc-50 overflow-hidden shadow-sm">
-        <CollapsiblePrimitive.Trigger asChild>
-          <button className="w-full flex items-center justify-between p-4 bg-white hover:bg-zinc-100 transition-colors border-b border-zinc-200">
-            <div className="flex items-center gap-2.5 text-zinc-900">
-              {iconComponent && <span className="flex items-center text-zinc-600">{iconComponent}</span>}
-              <span className="font-medium text-sm">{title}</span>
-            </div>
-            <ChevronDown
-              className={`h-5 w-5 text-zinc-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </CollapsiblePrimitive.Trigger>
-        <CollapsiblePrimitive.Content className="p-4 bg-zinc-50">
-          {children}
-        </CollapsiblePrimitive.Content>
+    <div className="bg-white overflow-visible">
+      <div className="w-full flex items-center py-2 mb-2">
+        <div className="flex items-center gap-2 text-zinc-900">
+          {iconComponent && <span className="flex items-center text-zinc-500">{iconComponent}</span>}
+          <span className="font-semibold text-[18px] leading-none tracking-tight text-zinc-900">{title}</span>
+        </div>
       </div>
-    </CollapsiblePrimitive.Root>
+      <div className="pt-3 pb-4">{children}</div>
+    </div>
   )
 }
