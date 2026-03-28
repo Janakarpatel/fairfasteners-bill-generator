@@ -1,5 +1,7 @@
 import { BillData, Calculations } from '@/lib/types'
 import { COLOR_FALLBACKS } from '@/lib/billing/constants'
+import { formatBillingAddress } from '@/lib/billing/formatBillingAddress'
+import { formatClientContactForDisplay } from '@/lib/billing/indianMobile'
 
 /**
  * Export the rendered invoice DOM to a PDF file.
@@ -78,29 +80,47 @@ export const exportBillAsExcel = async (data: BillData, calculations: Calculatio
     ['', ''],
     ['Client Details', ''],
     ['Name', data.clientName],
+    ['Address (street)', data.clientAddress],
+    ['City', data.clientCity],
+    ['State', data.clientState],
+    ['PIN / Postal code', data.clientPincode],
+    ['Billing address (formatted)', formatBillingAddress(data)],
     ['GST No', data.clientGstNo],
+    ['Mobile', formatClientContactForDisplay(data.clientMobileDialCode, data.clientMobile)],
+    ['', ''],
+    ['Notes', data.notes],
   ]
 
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryData)
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary')
 
   const itemsData = [
-    ['SR', 'Description', 'HSN', 'Bags', 'Qty', 'Rate', 'Amount'],
+    [
+      'SR',
+      'Description',
+      'HSN',
+      'Bags',
+      'Qty',
+      'UOM',
+      'Rate',
+      'Amount',
+    ],
     ...calculations.items.map((item, i) => [
       i + 1,
       item.description,
       item.hsnCode,
       item.bags,
       item.quantity,
+      item.quantityUnit,
       item.rate,
       item.amount,
     ]),
-    ['', '', '', '', '', 'Sub Total', calculations.subTotal],
-    ['', '', '', '', '', 'Freight', data.freight],
-    ['', '', '', '', '', `CGST (${data.cgstRate}%)`, calculations.cgstAmount],
-    ['', '', '', '', '', `SGST (${data.sgstRate}%)`, calculations.sgstAmount],
-    ['', '', '', '', '', `IGST (${data.igstRate}%)`, calculations.igstAmount],
-    ['', '', '', '', '', 'Grand Total', calculations.grandTotal],
+    ['', '', '', '', '', '', 'Sub Total', calculations.subTotal],
+    ['', '', '', '', '', '', 'Freight', data.freight],
+    ['', '', '', '', '', '', `CGST (${data.cgstRate}%)`, calculations.cgstAmount],
+    ['', '', '', '', '', '', `SGST (${data.sgstRate}%)`, calculations.sgstAmount],
+    ['', '', '', '', '', '', `IGST (${data.igstRate}%)`, calculations.igstAmount],
+    ['', '', '', '', '', '', 'Grand Total', calculations.grandTotal],
   ]
 
   const wsItems = XLSX.utils.aoa_to_sheet(itemsData)

@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LenisScroll />
         {children}
         <div className="bg-[var(--brand-primary)] px-4 py-4 h-full">
-          <footer className="bg-white text-zinc-900 flex items-center justify-between rounded-lg border border-[var(--brand-border)] shadow-sm overflow-hidden py-3 px-4">
+          <footer className="bg-white text-zinc-900 flex items-center justify-between rounded-sm border border-[var(--brand-border)] shadow-sm overflow-hidden py-3 px-4">
             <div className="flex items-center gap-3">
               <img
                 src="/company_logo.svg"

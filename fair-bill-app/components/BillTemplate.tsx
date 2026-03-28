@@ -4,6 +4,12 @@
 import React from 'react'
 import { BillData, Calculations } from '@/lib/types'
 import { formatCurrency, numberToWords } from '@/lib/utils'
+import { formatBillingAddress } from '@/lib/billing/formatBillingAddress'
+import { formatClientContactForDisplay } from '@/lib/billing/indianMobile'
+import { toSingleLineDescription } from '@/lib/catalog/goodsCatalog'
+import { formatQuantityUnitLabel } from '@/lib/billing/quantityUnit'
+import { isIgstInterstateRule } from '@/lib/billing/taxRules'
+import staticText from '@/lib/static-text.json'
 
 interface BillTemplateProps {
   data: BillData
@@ -15,6 +21,9 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
     if (!dateStr) return ''
     return new Date(dateStr).toLocaleDateString('en-GB')
   }
+
+  const clientContact = formatClientContactForDisplay(data.clientMobileDialCode, data.clientMobile)
+  const billingAddressFormatted = formatBillingAddress(data)
 
   return (
     <div
@@ -57,16 +66,18 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
         <div className="border-r border-zinc-900 p-3 flex flex-col">
           <span className="text-zinc-500 font-medium mb-1">Billed To:</span>
           <span className="font-semibold text-[12px]">{data.clientName || '-'}</span>
-          <span className="whitespace-pre-wrap mt-1">{data.clientAddress}</span>
+          {billingAddressFormatted ? (
+            <span className="whitespace-pre-wrap mt-1">{billingAddressFormatted}</span>
+          ) : null}
           <div className="mt-auto pt-2 grid grid-cols-1 gap-0.5">
             {data.clientGstNo && (
               <div>
                 <span className="font-medium">GSTIN:</span> {data.clientGstNo}
               </div>
             )}
-            {data.clientMobile && (
+            {clientContact && (
               <div>
-                <span className="font-medium">Contact:</span> {data.clientMobile}{' '}
+                <span className="font-medium">Contact No:</span> {clientContact}{' '}
                 {data.clientContactName && `(${data.clientContactName})`}
               </div>
             )}
@@ -99,7 +110,7 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span className="font-medium">Transport:</span> {data.transport}
             </div>
           </div>
-          <div className="grid grid-cols-2 flex-1">
+          <div className="grid grid-cols-2 flex-1 border-b border-zinc-900">
             <div className="p-2 border-r border-zinc-900">
               <span className="font-medium">LR No:</span> {data.lrNo}
             </div>
@@ -107,34 +118,51 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span className="font-medium">LR Date:</span> {formatDate(data.lrDate)}
             </div>
           </div>
+          <div className="p-2">
+            <span className="font-medium">Payment Terms:</span>{' '}
+            <span className="text-zinc-800">{data.paymentTerms?.trim() || '—'}</span>
+          </div>
         </div>
       </div>
 
       {/* Table */}
       <div className="flex-1 flex flex-col">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full table-fixed border-collapse text-left">
           <thead>
             <tr className="border-b border-zinc-900 bg-zinc-50">
-              <th className="p-2 border-r border-zinc-900 w-10 text-center font-medium">SR.</th>
-              <th className="p-2 border-r border-zinc-900 font-medium">Description of Goods</th>
-              <th className="p-2 border-r border-zinc-900 w-20 text-center font-medium">HSN</th>
-              <th className="p-2 border-r border-zinc-900 w-16 text-center font-medium">Bags</th>
-              <th className="p-2 border-r border-zinc-900 w-16 text-center font-medium">Qty</th>
-              <th className="p-2 border-r border-zinc-900 w-24 text-right font-medium">Rate</th>
-              <th className="p-2 w-28 text-right font-medium">Amount</th>
+              <th className="p-2 border-r border-zinc-900 w-[5%] text-center font-medium">SR.</th>
+              <th className="p-2 border-r border-zinc-900 w-[32%] min-w-0 font-medium">
+                Description of Goods
+              </th>
+              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">HSN</th>
+              <th className="p-2 border-r border-zinc-900 w-[5%] text-center font-medium">Bags</th>
+              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">Qty</th>
+              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">Unit</th>
+              <th className="p-2 border-r border-zinc-900 w-[10%] text-right font-medium">Rate</th>
+              <th className="p-2 w-[12%] text-right font-medium">Amount</th>
             </tr>
           </thead>
           <tbody>
             {calculations.items.map((item, index) => (
               <tr key={item.id} className="border-b border-zinc-200 align-top">
                 <td className="p-2 border-r border-zinc-900 text-center">{index + 1}</td>
-                <td className="p-2 border-r border-zinc-900 whitespace-pre-wrap">
-                  {item.description}
+                <td className="p-2 border-r border-zinc-900 min-w-0 align-top">
+                  <span
+                    className="block truncate whitespace-nowrap"
+                    title={toSingleLineDescription(item.description)}
+                  >
+                    {toSingleLineDescription(item.description)}
+                  </span>
                 </td>
                 <td className="p-2 border-r border-zinc-900 text-center">{item.hsnCode}</td>
                 <td className="p-2 border-r border-zinc-900 text-center">{item.bags || '-'}</td>
-                <td className="p-2 border-r border-zinc-900 text-center">{item.quantity}</td>
-                <td className="p-2 border-r border-zinc-900 text-right">
+                <td className="p-2 border-r border-zinc-900 text-center whitespace-nowrap">
+                  {item.quantity}
+                </td>
+                <td className="p-2 border-r border-zinc-900 text-center whitespace-nowrap">
+                  {formatQuantityUnitLabel(item.quantityUnit)}
+                </td>
+                <td className="p-2 border-r border-zinc-900 text-right whitespace-nowrap">
                   {formatCurrency(item.rate).replace('₹', '')}
                 </td>
                 <td className="p-2 text-right">{formatCurrency(item.amount).replace('₹', '')}</td>
@@ -155,28 +183,28 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
           <div className="mt-4 pt-3 border-t border-zinc-200">
             <span className="font-medium block mb-1 text-zinc-900">Bank Details:</span>
             <div className="grid grid-cols-1 gap-0.5 text-[10px]">
-              {data.bankName && (
+              {staticText.bank.name && (
                 <div>
                   <span className="text-zinc-500">Bank Name:</span>{' '}
-                  <span className="font-medium">{data.bankName}</span>
+                  <span className="font-medium">{staticText.bank.name}</span>
                 </div>
               )}
-              {data.bankAccountNo && (
+              {staticText.bank.accountNo && (
                 <div>
                   <span className="text-zinc-500">A/C No:</span>{' '}
-                  <span className="font-medium">{data.bankAccountNo}</span>
+                  <span className="font-medium">{staticText.bank.accountNo}</span>
                 </div>
               )}
-              {data.bankBranch && (
+              {staticText.bank.branch && (
                 <div>
                   <span className="text-zinc-500">Branch:</span>{' '}
-                  <span className="font-medium">{data.bankBranch}</span>
+                  <span className="font-medium">{staticText.bank.branch}</span>
                 </div>
               )}
-              {data.bankIfscCode && (
+              {staticText.bank.ifscCode && (
                 <div>
                   <span className="text-zinc-500">IFSC:</span>{' '}
-                  <span className="font-medium">{data.bankIfscCode}</span>
+                  <span className="font-medium">{staticText.bank.ifscCode}</span>
                 </div>
               )}
             </div>
@@ -195,19 +223,19 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span>{formatCurrency(data.freight)}</span>
             </div>
           )}
-          {data.cgstRate > 0 && (
+          {!isIgstInterstateRule(data.igstRate) && data.cgstRate > 0 && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">CGST @ {data.cgstRate}%</span>
               <span>{formatCurrency(calculations.cgstAmount)}</span>
             </div>
           )}
-          {data.sgstRate > 0 && (
+          {!isIgstInterstateRule(data.igstRate) && data.sgstRate > 0 && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">SGST @ {data.sgstRate}%</span>
               <span>{formatCurrency(calculations.sgstAmount)}</span>
             </div>
           )}
-          {data.igstRate > 0 && (
+          {isIgstInterstateRule(data.igstRate) && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">IGST @ {data.igstRate}%</span>
               <span>{formatCurrency(calculations.igstAmount)}</span>
@@ -219,6 +247,15 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
           </div>
         </div>
       </div>
+
+      {data.notes.trim() ? (
+        <div className="border-t border-zinc-900 p-3 flex-none">
+          <span className="font-medium text-zinc-900 block mb-1">Notes:</span>
+          <div className="whitespace-pre-wrap text-[9px] text-zinc-600 leading-tight">
+            {data.notes.trim()}
+          </div>
+        </div>
+      ) : null}
 
       {/* Footer: Terms & Signature */}
       <div className="border-t border-zinc-900 grid grid-cols-2 flex-none">

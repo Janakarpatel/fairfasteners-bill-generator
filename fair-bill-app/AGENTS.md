@@ -3,3 +3,7 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+## This repo
+
+Invoice app entry: `app/page.tsx` → `components/BillGenerator.tsx`. Domain logic: `lib/billing/`. Static seller defaults: `lib/static-text.json`. See **`docs/ARCHITECTURE.md`** for structure, tax/export/persistence, and Lenis scroll behavior.

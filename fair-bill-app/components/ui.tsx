@@ -1,13 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { Printer, FileText, HardDrive, Hourglass, Plus, Trash2, Building2, FileJson, Users, Package, Calculator, CreditCard } from 'lucide-react'
+import { Printer, FileText, HardDrive, Hourglass, Plus, Trash2, Building2, FileJson, Users, Package, Calculator, CreditCard, StickyNote } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 // ============ Button Component ============
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -58,6 +58,7 @@ const getIconComponent = (iconString: string): React.ReactNode => {
     'solar:box-linear': <Package className="h-4 w-4" />,
     'solar:calculator-linear': <Calculator className="h-4 w-4" />,
     'solar:card-linear': <CreditCard className="h-4 w-4" />,
+    'solar:notes-linear': <StickyNote className="h-4 w-4" />,
   }
   
   return iconMap[iconString] || null
@@ -86,10 +87,11 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   label?: string
   value?: string | number
   onChange?: (value: string | number) => void
+  error?: string
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = 'text', label, disabled, value, onChange, ...props }, ref) => {
+  ({ className, type = 'text', label, disabled, value, onChange, error, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) {
         const newValue = type === 'number' ? Number(e.target.value) : e.target.value
@@ -109,13 +111,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           disabled={disabled}
           value={value ?? ''}
           onChange={handleChange}
+          aria-invalid={error ? true : undefined}
           className={cn(
-            'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
+            error && 'border-red-500 focus-visible:ring-red-500',
             className
           )}
           ref={ref}
           {...props}
         />
+        {error ? <p className="text-xs text-red-600 leading-snug">{error}</p> : null}
       </div>
     )
   }
@@ -151,7 +156,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           onChange={handleChange}
           rows={rows}
           className={cn(
-            'flex w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
+            'flex w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
             className
           )}
           ref={ref}
