@@ -9,12 +9,22 @@
     "gstNo": "07AAACF2345Q1Z8",
     "udyamNo": "UDYAM-DL-01-1234567"
   },
+  "bank": {
+    "name": "HDFC Bank Ltd.",
+    "branch": "Industrial Estate, New Delhi",
+    "accountNo": "50100123456789",
+    "ifscCode": "HDFC0001234"
+  },
   "defaults": {
-    "paymentTerms": "Due on Receipt",
+    "paymentTerms": "Against Delivery (30 Days)",
     "termsAndConditions": "1. Goods once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged if payment is delayed.",
-    "initialBillNo": "INV-001",
+    "initialBillNo": "FTG-",
+    "initialChallanNo": "FTG-",
+    "defaultPoNo": "VERBAL",
+    "defaultClientMobileDialCode": "91",
     "cgstRate": 9,
     "sgstRate": 9,
-    "igstRate": 0
+    "igstRate": 0,
+    "defaultQuantityUnit": "KG"
   }
 }

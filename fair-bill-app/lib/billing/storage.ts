@@ -1,10 +1,7 @@
 import { BillData } from '@/lib/types'
 import { BILL_STORAGE_KEY } from '@/lib/billing/constants'
 
-type PersistedBillFields = Pick<
-  BillData,
-  'bankName' | 'bankBranch' | 'bankAccountNo' | 'bankIfscCode' | 'termsAndConditions'
->
+type PersistedBillFields = Pick<BillData, 'termsAndConditions'>
 
 /**
  * Load only persisted, user-editable fields from localStorage.
@@ -25,10 +22,6 @@ export const loadPersistedBillFields = (): Partial<PersistedBillFields> => {
  */
 export const savePersistedBillFields = (data: BillData) => {
   const saveableData: PersistedBillFields = {
-    bankName: data.bankName,
-    bankBranch: data.bankBranch,
-    bankAccountNo: data.bankAccountNo,
-    bankIfscCode: data.bankIfscCode,
     termsAndConditions: data.termsAndConditions,
   }
 

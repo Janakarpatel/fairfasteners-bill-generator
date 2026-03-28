@@ -40,7 +40,7 @@ function Calendar({
         week: "grid grid-cols-7 gap-1",
         day: "h-8 w-8 p-0",
         day_button:
-          "h-8 w-8 rounded-md text-sm text-zinc-900 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400",
+          "h-8 w-8 rounded-md text-sm text-zinc-900 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2",
         today:
           "[&>button]:rounded-md [&>button]:bg-[var(--brand-primary)] [&>button]:text-white [&>button]:hover:bg-[var(--brand-primary-hover)]",
         selected: "text-white",
