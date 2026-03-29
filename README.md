@@ -1,6 +1,6 @@
 # Fair Fasteners — Bill Generator
 
-Monorepo root for the **Fair Fasteners invoice (bill) generator** web app.
+Monorepo root for the **Fair Fasteners invoice (bill) generator** web app. Configuration is static JSON and optional browser **localStorage**; there is no server database in this repository.
 
 ## App location
 

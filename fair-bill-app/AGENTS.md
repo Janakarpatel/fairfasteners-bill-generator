@@ -6,4 +6,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## This repo
 
-Invoice app entry: `app/page.tsx` → `components/BillGenerator.tsx`. Domain logic: `lib/billing/`. Static seller defaults: `lib/static-text.json`. See **`docs/ARCHITECTURE.md`** for structure, tax/export/persistence, and Lenis scroll behavior.
+Invoice app entry: `app/page.tsx` → `components/BillGenerator.tsx`. Domain logic: `lib/billing/`. Static seller defaults and app version: `lib/static-text.json`. No server database—optional `localStorage` for terms only. See **`docs/ARCHITECTURE.md`** for structure, tax/export/persistence, and Lenis scroll behavior.

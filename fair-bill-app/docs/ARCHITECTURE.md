@@ -8,16 +8,16 @@ This document matches the **current** codebase: structure, data flow, and where 
 2. **`BillGenerator`** holds **`BillData`** in React state, runs **`calculateBillTotals`**, and renders sections + optional **`BillTemplate`** preview.
 3. **`BillTemplate`** is the **print/PDF** markup (`id="invoice-preview"`). PDF export rasterizes this node; keep preview and template in sync for WYSIWYG.
 4. **`lib/billing/*`** owns calculations, exports, persistence, and most formatting rules.
-5. **`lib/static-text.json`** supplies fixed company, bank, and default strings/rates consumed in **`lib/types.ts`** (`fixedCompanyData`, `getInitialBillData`, `getDefaultQuantityUnit`).
+5. **`lib/static-text.json`** supplies **`app.version`** (footer in **`app/layout.tsx`**), fixed company, bank, and default strings/rates consumed in **`lib/types.ts`** (`fixedCompanyData`, `getInitialBillData`, `getDefaultQuantityUnit`). There is **no server database**; persistence is **localStorage** for terms only (see below).
 
 ## Folder structure
 
 | Path | Role |
 |------|------|
-| `app/` | App Router: `layout.tsx` (Geist font, footer, **`LenisScroll`**), `page.tsx`, `globals.css` (brand CSS variables, print rules). |
+| `app/` | App Router: `layout.tsx` (Geist font, footer with version from **`static-text.json`**, **`LenisScroll`**), `page.tsx`, `globals.css` (brand CSS variables, print rules). |
 | `components/` | **`BillGenerator.tsx`**, **`BillTemplate.tsx`**, **`LenisScroll.tsx`**, **`ui.tsx`** (Input, Textarea, Section, Button), **`ui/*`** (shadcn-style primitives, calendar, dropdown). |
 | `lib/types.ts` | **`BillData`**, **`LineItem`**, **`QuantityUnit`** (`'KG' \| 'PC'`), **`Calculations`**, **`getInitialBillData`**. |
-| `lib/static-text.json` | **`company`**, **`bank`**, **`defaults`** (no bank fields on `BillData`; template reads bank from JSON). |
+| `lib/static-text.json` | **`app.version`**, **`company`**, **`bank`**, **`defaults`** (no bank fields on `BillData`; template reads bank from JSON). |
 | `lib/catalog/` | **`goods-catalog.json`**, **`goodsCatalog.ts`** (product list, sizes, description formatting). |
 | `lib/billing/` | Domain logic (see below). |
 | `lib/utils.ts` | Currency, number-to-words, **`cn`**. |
