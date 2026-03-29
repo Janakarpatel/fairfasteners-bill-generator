@@ -24,6 +24,9 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
   const clientContact = formatClientContactForDisplay(data.clientMobileDialCode, data.clientMobile)
   const billingAddressFormatted = formatBillingAddress(data)
 
+  const clientContact = formatClientContactForDisplay(data.clientMobileDialCode, data.clientMobile)
+  const billingAddressFormatted = formatBillingAddress(data)
+
   return (
     <div
       id="invoice-preview"
