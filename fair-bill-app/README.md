@@ -1,6 +1,6 @@
 # Fair Bill App
 
-Next.js (App Router) invoice builder for **Fair Fasteners**: form-driven data entry, live preview, PDF and Excel export. Company identity, bank details, and several defaults are driven by **`lib/static-text.json`**.
+Next.js (App Router) invoice builder for **Fair Fasteners**: form-driven data entry, live preview, PDF and Excel export. App version (footer), company identity, bank details, and defaults are driven by **`lib/static-text.json`**. No database — bill data lives in React state; only terms & conditions are persisted (browser **localStorage**).
 
 ## Requirements
 
@@ -30,7 +30,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Invoice form** (`components/BillGenerator.tsx`): invoice metadata, client and billing address, line items (catalog + custom descriptions), freight, CGST/SGST/IGST, payment terms (presets + custom), notes, terms & conditions.
 - **Preview** (`components/BillTemplate.tsx`): A4-style layout; optional show/hide. **PDF** captures `#invoice-preview` via dynamic `html2canvas` + **jsPDF** (`lib/billing/exports.ts`).
 - **Excel** export: summary sheet + line items (qty, UOM, rate, amount) (`exportBillAsExcel`).
-- **Static config** (`lib/static-text.json`): `company`, `bank`, `defaults` (payment terms text, bill/challan prefixes, default PO no., tax rates, default quantity unit `KG`/`PC`, etc.).
+- **Static config** (`lib/static-text.json`): `app.version`, `company`, `bank`, `defaults` (payment terms text, bill/challan prefixes, default PO no., tax rates, default quantity unit `KG`/`PC`, etc.).
 - **Catalog** (`lib/catalog/goods-catalog.json` + `goodsCatalog.ts`): product/size-driven line descriptions.
 - **Tax**: GST computed on **subtotal + freight** (`lib/billing/calculations.ts`). **IGST 18% or 0.1%** switches to IGST-only mode (`lib/billing/taxRules.ts`).
 - **Persistence**: only **terms & conditions** are saved to `localStorage` (`lib/billing/storage.ts`); key in `lib/billing/constants.ts`.

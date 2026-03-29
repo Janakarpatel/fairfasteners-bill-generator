@@ -3,42 +3,50 @@
     {
       "id": "pop-rivets",
       "name": "Pop Rivets",
-      "sizes": ["3 x 8 mm", "4 x 10 mm", "5 x 12 mm", "6 x 14 mm", "8 x 16 mm", "10 x 20 mm"]
+      "sizes": ["3 x 8 X 10 X 1.5 mm", "4 x 10 mm", "5 x 12 mm", "6 x 14 mm", "8 x 16 mm", "10 x 20 mm"],
+      "hsnCode": "123456"
     },
     {
       "id": "alu-rivets",
       "name": "Alu Rivets",
-      "sizes": ["4 x 10 mm", "5 x 12 mm", "6 x 14 mm", "8 x 16 mm"]
+      "sizes": ["4 x 10 mm", "5 x 12 mm", "6 x 14 mm", "8 x 16 mm"],
+      "hsnCode": "1234"
     },
     {
       "id": "steel-rivets",
       "name": "Steel Rivets",
-      "sizes": ["4 x 8 mm", "5 x 10 mm", "6 x 12 mm", "8 x 14 mm"]
+      "sizes": ["4 x 8 mm", "5 x 10 mm", "6 x 12 mm", "8 x 14 mm"],
+      "hsnCode": "1256"
     },
     {
       "id": "blind-rivets",
       "name": "Blind Rivets",
-      "sizes": ["3.2 x 6 mm", "4 x 8 mm", "4.8 x 10 mm", "6.4 x 12 mm"]
+      "sizes": ["3.2 x 6 mm", "4 x 8 mm", "4.8 x 10 mm", "6.4 x 12 mm"],
+      "hsnCode": "12456"
     },
     {
       "id": "screws-wood",
       "name": "Wood Screws",
-      "sizes": ["3 x 20 mm", "4 x 25 mm", "4 x 30 mm", "5 x 40 mm", "6 x 50 mm"]
+      "sizes": ["3 x 20 mm", "4 x 25 mm", "4 x 30 mm", "5 x 40 mm", "6 x 50 mm"],
+      "hsnCode": "12356"
     },
     {
       "id": "screws-metric",
       "name": "Metric Machine Screws",
-      "sizes": ["M4 x 12", "M4 x 16", "M5 x 20", "M6 x 25", "M8 x 30"]
+      "sizes": ["M4 x 12", "M4 x 16", "M5 x 20", "M6 x 25", "M8 x 30"],
+      "hsnCode": "1456"
     },
     {
       "id": "nuts-hex",
       "name": "Hex Nuts",
-      "sizes": ["M4", "M5", "M6", "M8", "M10", "M12"]
+      "sizes": ["M4", "M5", "M6", "M8", "M10", "M12"],
+      "hsnCode": "456"
     },
     {
       "id": "washers-flat",
       "name": "Flat Washers",
-      "sizes": ["M4", "M5", "M6", "M8", "M10", "M12"]
+      "sizes": ["M4", "M5", "M6", "M8", "M10", "M12"],
+      "hsnCode": "1456"
     }
   ]
 }

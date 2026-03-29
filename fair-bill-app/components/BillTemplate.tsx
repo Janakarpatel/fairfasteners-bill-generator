@@ -3,7 +3,7 @@
 
 import React from 'react'
 import { BillData, Calculations } from '@/lib/types'
-import { formatCurrency, numberToWords } from '@/lib/utils'
+import { formatBillDateDisplay, formatCurrency, numberToWords } from '@/lib/utils'
 import { formatBillingAddress } from '@/lib/billing/formatBillingAddress'
 import { formatClientContactForDisplay } from '@/lib/billing/indianMobile'
 import { toSingleLineDescription } from '@/lib/catalog/goodsCatalog'
@@ -11,24 +11,23 @@ import { formatQuantityUnitLabel } from '@/lib/billing/quantityUnit'
 import { isIgstInterstateRule } from '@/lib/billing/taxRules'
 import staticText from '@/lib/static-text.json'
 
+/** Single grid for header, line rows, and filler — column lines stay aligned (table + fr grid did not). */
+const LINE_ITEM_GRID_COLS =
+  'minmax(0,5%) minmax(0,32%) minmax(0,7%) minmax(0,5%) minmax(0,7%) minmax(0,7%) minmax(0,10%) minmax(0,1fr)'
+
 interface BillTemplateProps {
   data: BillData
   calculations: Calculations
 }
 
 export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return ''
-    return new Date(dateStr).toLocaleDateString('en-GB')
-  }
-
   const clientContact = formatClientContactForDisplay(data.clientMobileDialCode, data.clientMobile)
   const billingAddressFormatted = formatBillingAddress(data)
 
   return (
     <div
       id="invoice-preview"
-      className="bg-white border border-zinc-200 w-[210mm] h-[297mm] flex flex-col text-[11px] text-zinc-900 leading-snug relative mx-auto rounded-md"
+      className="invoice-a4-page bg-white border border-zinc-200 box-border shrink-0 w-[210mm] min-w-[210mm] max-w-none h-[297mm] min-h-[297mm] max-h-[297mm] flex flex-col text-[11px] text-zinc-900 leading-snug relative mx-auto rounded-md print:rounded-none"
     >
       {/* Header */}
       <div className="text-center p-4 border-b border-zinc-900">
@@ -85,21 +84,13 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
         </div>
 
         {/* Invoice Details */}
-        <div className="p-0 flex flex-col">
+        <div className="p-0 flex flex-col h-full min-h-0">
           <div className="grid grid-cols-2 border-b border-zinc-900">
             <div className="p-2 border-r border-zinc-900">
               <span className="font-medium">Bill No:</span> {data.billNo}
             </div>
             <div className="p-2">
-              <span className="font-medium">Date:</span> {formatDate(data.billDate)}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 border-b border-zinc-900">
-            <div className="p-2 border-r border-zinc-900">
-              <span className="font-medium">Book No:</span> {data.bookNo}
-            </div>
-            <div className="p-2">
-              <span className="font-medium">PO No:</span> {data.poNo}
+              <span className="font-medium">Bill Date:</span> {formatBillDateDisplay(data.billDate)}
             </div>
           </div>
           <div className="grid grid-cols-2 border-b border-zinc-900">
@@ -107,78 +98,128 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span className="font-medium">Challan No:</span> {data.chNo}
             </div>
             <div className="p-2">
-              <span className="font-medium">Transport:</span> {data.transport}
+              <span className="font-medium">Challan Date:</span> {formatBillDateDisplay(data.chDate)}
             </div>
           </div>
-          <div className="grid grid-cols-2 flex-1 border-b border-zinc-900">
+          <div className="grid grid-cols-2 border-b border-zinc-900">
+            <div className="p-2 border-r border-zinc-900">
+              <span className="font-medium">PO No:</span> {data.poNo}
+            </div>
+            <div className="p-2">
+              <span className="font-medium">PO Date:</span> {formatBillDateDisplay(data.poDate)}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 border-b border-zinc-900">
             <div className="p-2 border-r border-zinc-900">
               <span className="font-medium">LR No:</span> {data.lrNo}
             </div>
             <div className="p-2">
-              <span className="font-medium">LR Date:</span> {formatDate(data.lrDate)}
+              <span className="font-medium">LR Date:</span> {formatBillDateDisplay(data.lrDate)}
             </div>
           </div>
           <div className="p-2">
-            <span className="font-medium">Payment Terms:</span>{' '}
-            <span className="text-zinc-800">{data.paymentTerms?.trim() || '—'}</span>
+            <span className="font-medium">Transport:</span> {data.transport}
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 flex flex-col">
-        <table className="w-full table-fixed border-collapse text-left">
-          <thead>
-            <tr className="border-b border-zinc-900 bg-zinc-50">
-              <th className="p-2 border-r border-zinc-900 w-[5%] text-center font-medium">SR.</th>
-              <th className="p-2 border-r border-zinc-900 w-[32%] min-w-0 font-medium">
-                Description of Goods
-              </th>
-              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">HSN</th>
-              <th className="p-2 border-r border-zinc-900 w-[5%] text-center font-medium">Bags</th>
-              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">Qty</th>
-              <th className="p-2 border-r border-zinc-900 w-[7%] text-center font-medium">Unit</th>
-              <th className="p-2 border-r border-zinc-900 w-[10%] text-right font-medium">Rate</th>
-              <th className="p-2 w-[12%] text-right font-medium">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {calculations.items.map((item, index) => (
-              <tr key={item.id} className="border-b border-zinc-200 align-top">
-                <td className="p-2 border-r border-zinc-900 text-center">{index + 1}</td>
-                <td className="p-2 border-r border-zinc-900 min-w-0 align-top">
-                  <span
-                    className="block truncate whitespace-nowrap"
-                    title={toSingleLineDescription(item.description)}
-                  >
-                    {toSingleLineDescription(item.description)}
-                  </span>
-                </td>
-                <td className="p-2 border-r border-zinc-900 text-center">{item.hsnCode}</td>
-                <td className="p-2 border-r border-zinc-900 text-center">{item.bags || '-'}</td>
-                <td className="p-2 border-r border-zinc-900 text-center whitespace-nowrap">
-                  {item.quantity}
-                </td>
-                <td className="p-2 border-r border-zinc-900 text-center whitespace-nowrap">
-                  {formatQuantityUnitLabel(item.quantityUnit)}
-                </td>
-                <td className="p-2 border-r border-zinc-900 text-right whitespace-nowrap">
-                  {formatCurrency(item.rate).replace('₹', '')}
-                </td>
-                <td className="p-2 text-right">{formatCurrency(item.amount).replace('₹', '')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Line items: one CSS grid so header, rows, and filler share exact column tracks */}
+      <div
+        className="flex-1 min-h-0 border-zinc-900 grid text-left"
+        style={{
+          gridTemplateColumns: LINE_ITEM_GRID_COLS,
+          gridTemplateRows: [
+            ...Array(1 + calculations.items.length).fill('auto'),
+            'minmax(2.5rem, 1fr)',
+          ].join(' '),
+        }}
+      >
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-center font-medium">
+          SN.
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 min-w-0 font-medium">
+          Description of Goods
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-center font-medium">
+          HSN
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-center font-medium">
+          Bags
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-center font-medium">
+          Qty
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-center font-medium">
+          Unit
+        </div>
+        <div className="p-2 border-b border-r border-zinc-900 bg-zinc-50 text-right font-medium">
+          Rate
+        </div>
+        <div className="p-2 border-b border-zinc-900 bg-zinc-50 text-right font-medium">
+          Amount
+        </div>
+
+        {calculations.items.map((item, index) => {
+          const isLast = index === calculations.items.length - 1
+          const rowBorder = isLast ? 'border-b border-zinc-900' : 'border-b border-zinc-200'
+          return (
+            <React.Fragment key={item.id}>
+              <div className={`p-2 border-r border-zinc-900 text-center align-top ${rowBorder}`}>
+                {index + 1}
+              </div>
+              <div className={`p-2 border-r border-zinc-900 min-w-0 align-top ${rowBorder}`}>
+                <span
+                  className="block truncate whitespace-nowrap"
+                  title={toSingleLineDescription(item.description)}
+                >
+                  {toSingleLineDescription(item.description)}
+                </span>
+              </div>
+              <div className={`p-2 border-r border-zinc-900 text-center align-top ${rowBorder}`}>
+                {item.hsnCode}
+              </div>
+              <div className={`p-2 border-r border-zinc-900 text-center align-top ${rowBorder}`}>
+                {Math.max(1, item.bags)}
+              </div>
+              <div
+                className={`p-2 border-r border-zinc-900 text-center whitespace-nowrap align-top ${rowBorder}`}
+              >
+                {item.quantity}
+              </div>
+              <div
+                className={`p-2 border-r border-zinc-900 text-center whitespace-nowrap align-top ${rowBorder}`}
+              >
+                {formatQuantityUnitLabel(item.quantityUnit)}
+              </div>
+              <div
+                className={`p-2 border-r border-zinc-900 text-right whitespace-nowrap align-top ${rowBorder}`}
+              >
+                {formatCurrency(item.rate).replace('₹', '')}
+              </div>
+              <div className={`p-2 border-b border-zinc-900 text-right align-top ${rowBorder}`}>
+                {formatCurrency(item.amount).replace('₹', '')}
+              </div>
+            </React.Fragment>
+          )
+        })}
+
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={`filler-${i}`} className="border-r border-zinc-900 min-h-0" aria-hidden />
+        ))}
+        <div className="min-h-0" aria-hidden />
       </div>
 
       {/* Totals */}
       <div className="border-t border-zinc-900 grid grid-cols-12">
-        {/* Left side: Amount in words & Bank */}
+        {/* Left side: Amount in words, payment terms & Bank */}
         <div className="col-span-7 border-r border-zinc-900 p-3 flex flex-col justify-between">
           <div>
             <span className="font-medium text-zinc-500 block mb-1">Amount in Words:</span>
             <span className="font-medium">{numberToWords(calculations.grandTotal)}</span>
+          </div>
+          <div className="mt-3">
+            <span className="font-medium text-zinc-500 block mb-1">Payment Terms:</span>
+            <span className="text-zinc-800">{data.paymentTerms?.trim() || '—'}</span>
           </div>
           <div className="mt-4 pt-3 border-t border-zinc-200">
             <span className="font-medium block mb-1 text-zinc-900">Bank Details:</span>
@@ -241,6 +282,10 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span>{formatCurrency(calculations.igstAmount)}</span>
             </div>
           )}
+          <div className="flex justify-between p-2 border-b border-zinc-200">
+            <span className="font-medium text-zinc-600">Round off</span>
+            <span>{formatCurrency(calculations.roundOff)}</span>
+          </div>
           <div className="flex justify-between p-2 bg-zinc-50 font-semibold text-[13px]">
             <span>Grand Total</span>
             <span>{formatCurrency(calculations.grandTotal)}</span>

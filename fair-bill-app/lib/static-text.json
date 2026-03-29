@@ -1,4 +1,7 @@
 {
+  "app": {
+    "version": "0.2.0"
+  },
   "company": {
     "name": "Fair Fasteners",
     "address": "Plot No. 42, Industrial Estate, Phase II\nNew Delhi, 110020, India",

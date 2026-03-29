@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import LenisScroll from '@/components/LenisScroll'
+import staticText from '@/lib/static-text.json'
 
 const geist = Geist({ subsets: ['latin'] })
 
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             </div>
             <div className="flex items-center gap-4 text-xs text-zinc-600">
-              <span>Version 0.1.0</span>
+              <span>Version {staticText.app.version}</span>
               <span>© {new Date().getFullYear()} Fair Fasteners. All rights reserved.</span>
             </div>
           </footer>

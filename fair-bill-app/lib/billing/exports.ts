@@ -16,6 +16,25 @@ export const exportBillAsPdf = async (data: BillData) => {
     throw new Error('Invoice preview element not found')
   }
 
+  const el = element as HTMLElement
+  const sizeBackup = {
+    width: el.style.width,
+    height: el.style.height,
+    minWidth: el.style.minWidth,
+    maxWidth: el.style.maxWidth,
+    minHeight: el.style.minHeight,
+    maxHeight: el.style.maxHeight,
+    boxSizing: el.style.boxSizing,
+  }
+  el.style.boxSizing = 'border-box'
+  el.style.width = '210mm'
+  el.style.minWidth = '210mm'
+  el.style.maxWidth = 'none'
+  el.style.height = '297mm'
+  el.style.minHeight = '297mm'
+  el.style.maxHeight = '297mm'
+  void el.offsetHeight
+
   await document.fonts.ready
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
@@ -32,6 +51,16 @@ export const exportBillAsPdf = async (data: BillData) => {
       scale: 2,
       useCORS: true,
       onclone: (clonedDoc: Document) => {
+        const cloned = clonedDoc.getElementById('invoice-preview') as HTMLElement | null
+        if (cloned) {
+          cloned.style.boxSizing = 'border-box'
+          cloned.style.width = '210mm'
+          cloned.style.minWidth = '210mm'
+          cloned.style.maxWidth = 'none'
+          cloned.style.height = '297mm'
+          cloned.style.minHeight = '297mm'
+          cloned.style.maxHeight = '297mm'
+        }
         clonedDoc.querySelectorAll('style').forEach((styleEl) => {
           const css = styleEl.textContent
           if (!css) return
@@ -42,6 +71,13 @@ export const exportBillAsPdf = async (data: BillData) => {
       },
     })
   } finally {
+    el.style.width = sizeBackup.width
+    el.style.height = sizeBackup.height
+    el.style.minWidth = sizeBackup.minWidth
+    el.style.maxWidth = sizeBackup.maxWidth
+    el.style.minHeight = sizeBackup.minHeight
+    el.style.maxHeight = sizeBackup.maxHeight
+    el.style.boxSizing = sizeBackup.boxSizing
     Object.entries(previousValues).forEach(([key, value]) => {
       if (value) {
         root.style.setProperty(key, value)
@@ -51,12 +87,11 @@ export const exportBillAsPdf = async (data: BillData) => {
     })
   }
 
-  
   const imgData = canvas.toDataURL('image/png')
-  const pdf = new jsPDF('p', 'mm', 'a4')
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const imgWidth = pdf.internal.pageSize.getWidth()
   const imgHeight = pdf.internal.pageSize.getHeight()
-  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight)
+  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
   pdf.save(`Invoice_${data.billNo || 'Draft'}.pdf`)
 }
 
@@ -109,7 +144,7 @@ export const exportBillAsExcel = async (data: BillData, calculations: Calculatio
       i + 1,
       item.description,
       item.hsnCode,
-      item.bags,
+      Math.max(1, item.bags),
       item.quantity,
       item.quantityUnit,
       item.rate,
@@ -120,6 +155,7 @@ export const exportBillAsExcel = async (data: BillData, calculations: Calculatio
     ['', '', '', '', '', '', `CGST (${data.cgstRate}%)`, calculations.cgstAmount],
     ['', '', '', '', '', '', `SGST (${data.sgstRate}%)`, calculations.sgstAmount],
     ['', '', '', '', '', '', `IGST (${data.igstRate}%)`, calculations.igstAmount],
+    ['', '', '', '', '', '', 'Round off', calculations.roundOff],
     ['', '', '', '', '', '', 'Grand Total', calculations.grandTotal],
   ]
 

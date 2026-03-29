@@ -133,10 +133,11 @@ export interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTex
   value?: string
   onChange?: (value: string) => void
   rows?: number
+  error?: string
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, disabled, value, onChange, rows = 3, ...props }, ref) => {
+  ({ className, label, disabled, value, onChange, rows = 3, error, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {
         onChange(e.target.value)
@@ -155,13 +156,16 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           value={value ?? ''}
           onChange={handleChange}
           rows={rows}
+          aria-invalid={error ? true : undefined}
           className={cn(
             'flex w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 resize-y',
+            error && 'border-red-500 focus-visible:ring-red-500',
             className
           )}
           ref={ref}
           {...props}
         />
+        {error ? <p className="text-xs text-red-600 leading-snug">{error}</p> : null}
       </div>
     )
   }

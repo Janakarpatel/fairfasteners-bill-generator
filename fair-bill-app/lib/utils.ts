@@ -14,13 +14,20 @@ export function formatCurrency(value: number): string {
   }).format(value)
 }
 
+/** Invoice date display (day/month/year, en-GB). `value` is stored ISO `yyyy-mm-dd` or empty. */
+export function formatBillDateDisplay(value: string): string {
+  if (!value?.trim()) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  return d.toLocaleDateString('en-GB')
+}
+
 export function numberToWords(num: number): string {
   if (num === 0) return 'Zero'
 
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
   const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen']
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety']
-  const thousands = ['', 'Thousand', 'Lakh', 'Crore', 'Arab']
 
   function convertToWords(n: number): string {
     if (n === 0) return ''
