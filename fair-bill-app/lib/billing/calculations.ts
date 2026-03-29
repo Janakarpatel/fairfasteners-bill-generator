@@ -30,8 +30,21 @@ export const calculateBillTotals = (data: BillData): Calculations => {
     igstAmount = 0
   }
 
-  const grandTotal = subTotal + data.freight + cgstAmount + sgstAmount + igstAmount
+  const totalBeforeRoundOff = Number(
+    (subTotal + data.freight + cgstAmount + sgstAmount + igstAmount).toFixed(2)
+  )
+  const grandTotal = Math.round(totalBeforeRoundOff)
+  const roundOff = Number((grandTotal - totalBeforeRoundOff).toFixed(2))
 
-  return { items: itemsWithAmount, subTotal, cgstAmount, sgstAmount, igstAmount, grandTotal }
+  return {
+    items: itemsWithAmount,
+    subTotal,
+    cgstAmount,
+    sgstAmount,
+    igstAmount,
+    totalBeforeRoundOff,
+    roundOff,
+    grandTotal,
+  }
 }
 

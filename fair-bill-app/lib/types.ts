@@ -37,7 +37,6 @@ export interface BillData {
   companyWebsite: string
   companyGstNo: string
   companyUdyamNo: string
-  bookNo: string
   billNo: string
   billDate: string
   chNo: string
@@ -75,6 +74,10 @@ export interface Calculations {
   cgstAmount: number
   sgstAmount: number
   igstAmount: number
+  /** Subtotal + freight + tax, before rounding to whole rupees. */
+  totalBeforeRoundOff: number
+  /** Adjustment so Grand Total is the nearest whole rupee (₹). */
+  roundOff: number
   grandTotal: number
 }
 
@@ -91,7 +94,6 @@ export const fixedCompanyData = {
 
 export const getInitialBillData = (): BillData => ({
   ...fixedCompanyData,
-  bookNo: '',
   billNo: staticText.defaults.initialBillNo,
   billDate: new Date().toISOString().split('T')[0],
   chNo:
@@ -119,7 +121,7 @@ export const getInitialBillData = (): BillData => ({
       goodsSize: '',
       description: '',
       hsnCode: '',
-      bags: 0,
+      bags: 1,
       quantity: 1,
       quantityUnit: getDefaultQuantityUnit(),
       rate: 0,

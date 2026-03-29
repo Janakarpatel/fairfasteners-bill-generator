@@ -20,6 +20,10 @@ import {
   getInitialBillData,
   type LineItem,
 } from '@/lib/types'
+import {
+  hasBillRequiredFieldErrors,
+  validateBillRequiredFields,
+} from '@/lib/billing/billRequiredFields'
 import { calculateBillTotals } from '@/lib/billing/calculations'
 import { exportBillAsExcel, exportBillAsPdf } from '@/lib/billing/exports'
 import { loadPersistedBillFields, savePersistedBillFields } from '@/lib/billing/storage'
@@ -33,6 +37,7 @@ import staticText from '@/lib/static-text.json'
 import {
   formatGoodsDescriptionLine,
   getGoodsProducts,
+  getHsnCodeForGoodsProduct,
   getSizesForGoodsProduct,
   GOODS_CUSTOM_ID,
 } from '@/lib/catalog/goodsCatalog'
@@ -50,6 +55,7 @@ import {
   normalizeDialCodeInput,
   normalizeNationalMobileInput,
 } from '@/lib/billing/indianMobile'
+import { formatBillDateDisplay } from '@/lib/utils'
 import { Input, Textarea, Section, Button } from '@/components/ui'
 import { BillTemplate } from '@/components/BillTemplate'
 import { Calendar } from '@/components/ui/calendar'
@@ -74,12 +80,14 @@ export default function BillGenerator() {
   const [dragOverLineItemId, setDragOverLineItemId] = useState<string | null>(null)
   const [openDateField, setOpenDateField] = useState<keyof BillData | null>(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [highlightRequiredFields, setHighlightRequiredFields] = useState(false)
 
   const handleReset = () => {
     setIsExporting(false)
     setDraggedLineItemId(null)
     setDragOverLineItemId(null)
     setOpenDateField(null)
+    setHighlightRequiredFields(false)
     setData(getInitialBillData())
   }
 
@@ -118,19 +126,31 @@ export default function BillGenerator() {
     return `${year}-${month}-${day}`
   }
 
-  const renderDateField = (label: string, field: keyof BillData, className?: string) => {
+  const renderDateField = (
+    label: string,
+    field: keyof BillData,
+    className?: string,
+    error?: string
+  ) => {
     const value = data[field] as string
     return (
       <div className={`relative flex flex-col gap-2 ${className ?? ''}`} data-date-field-container="true">
         <label className="text-sm font-medium leading-none text-[var(--input-field-color)]">{label}</label>
         <button
           type="button"
-          className="flex h-10 w-full items-center justify-start gap-3 rounded-md border border-[var(--brand-border)] bg-white px-3 text-sm text-zinc-900 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          aria-invalid={error ? true : undefined}
+          className={
+            'flex h-10 w-full items-center justify-start gap-3 rounded-md border bg-white px-3 text-sm text-zinc-900 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white ' +
+            (error
+              ? 'border-red-500 focus-visible:ring-red-500'
+              : 'border-[var(--brand-border)] focus-visible:ring-[var(--brand-primary)]')
+          }
           onClick={() => setOpenDateField((prev) => (prev === field ? null : field))}
         >
           <CalendarDays className="h-4 w-4 text-zinc-500" />
-          <span>{value || 'Select date'}</span>
+          <span>{value ? formatBillDateDisplay(value) : 'Select date'}</span>
         </button>
+        {error ? <p className="text-xs text-red-600 leading-snug">{error}</p> : null}
         {openDateField === field && (
           <div className="absolute left-0 top-15 z-50 mt-1 rounded-md border border-[var(--brand-border)] bg-white shadow-sm">
             <Calendar
@@ -184,16 +204,28 @@ export default function BillGenerator() {
       lineItems: prev.lineItems.map((item) => {
         if (item.id !== id) return item
         if (productId === GOODS_CUSTOM_ID) {
-          return { ...item, goodsProductId: GOODS_CUSTOM_ID, goodsSize: '' }
+          return {
+            ...item,
+            goodsProductId: GOODS_CUSTOM_ID,
+            goodsSize: '',
+            hsnCode: '',
+          }
         }
         if (!productId) {
-          return { ...item, goodsProductId: '', goodsSize: '', description: '' }
+          return {
+            ...item,
+            goodsProductId: '',
+            goodsSize: '',
+            description: '',
+            hsnCode: '',
+          }
         }
         return {
           ...item,
           goodsProductId: productId,
           goodsSize: '',
           description: formatGoodsDescriptionLine(productId, ''),
+          hsnCode: getHsnCodeForGoodsProduct(productId),
         }
       }),
     }))
@@ -221,7 +253,7 @@ export default function BillGenerator() {
       goodsSize: '',
       description: '',
       hsnCode: '',
-      bags: 0,
+      bags: 1,
       quantity: 1,
       quantityUnit: getDefaultQuantityUnit(),
       rate: 0,
@@ -271,8 +303,30 @@ export default function BillGenerator() {
     [data.clientMobile, data.clientMobileDialCode]
   )
 
+  const requiredFieldErrors = useMemo(() => validateBillRequiredFields(data), [data])
+
+  useEffect(() => {
+    if (!highlightRequiredFields) return
+    if (!hasBillRequiredFieldErrors(requiredFieldErrors)) {
+      setHighlightRequiredFields(false)
+    }
+  }, [highlightRequiredFields, requiredFieldErrors])
+
+  const dialCodeErrorMerged =
+    clientDialCodeError ||
+    (highlightRequiredFields ? requiredFieldErrors.clientMobileDialCode : undefined)
+
+  const mobileErrorMerged =
+    clientMobileError ||
+    (highlightRequiredFields ? requiredFieldErrors.clientMobile : undefined)
+
   // PDF Export
   const exportPDF = async () => {
+    const req = validateBillRequiredFields(data)
+    if (hasBillRequiredFieldErrors(req)) {
+      setHighlightRequiredFields(true)
+      return
+    }
     setIsExporting(true)
     try {
       await exportBillAsPdf(data)
@@ -284,7 +338,21 @@ export default function BillGenerator() {
 
   // Excel Export
   const exportExcel = async () => {
+    const req = validateBillRequiredFields(data)
+    if (hasBillRequiredFieldErrors(req)) {
+      setHighlightRequiredFields(true)
+      return
+    }
     await exportBillAsExcel(data, calculations)
+  }
+
+  const handlePrint = () => {
+    const req = validateBillRequiredFields(data)
+    if (hasBillRequiredFieldErrors(req)) {
+      setHighlightRequiredFields(true)
+      return
+    }
+    window.print()
   }
 
   return (
@@ -311,11 +379,15 @@ export default function BillGenerator() {
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 flex">
+        <div className="flex-1 min-h-0 flex min-w-0">
           {/* LEFT: FORM */}
           <div
             data-lenis-scroll="true"
-            className={`${showPreview ? "w-[45%] border-r border-[var(--brand-border)]" : "w-full"} h-full min-h-0 overflow-y-auto overflow-x-hidden hide-scrollbar bg-white pt-5 px-0 pb-0 md:pt-6 md:px-0 md:pb-0 touch-pan-y`}
+            className={`shrink-0 h-full min-h-0 overflow-y-auto overflow-x-hidden hide-scrollbar bg-white pt-5 px-0 pb-0 md:pt-6 md:px-0 md:pb-0 touch-pan-y transition-[width] duration-300 ease-out motion-reduce:transition-none ${
+              showPreview
+                ? 'w-[45%] min-w-0 border-r border-[var(--brand-border)]'
+                : 'w-full min-w-0'
+            }`}
           >
           <div className="w-full flex flex-col gap-3 px-5 md:px-6">
             <div className="mb-1">
@@ -325,29 +397,45 @@ export default function BillGenerator() {
 
             <Section title="Invoice Details">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Bill No." value={data.billNo} onChange={(v) => updateField('billNo', v as string)} />
-                {renderDateField('Bill Date', 'billDate')}
-                <Input label="Book No." value={data.bookNo} onChange={(v) => updateField('bookNo', v as string)} />
+                <Input
+                  label="Bill No. *"
+                  value={data.billNo}
+                  onChange={(v) => updateField('billNo', v as string)}
+                  error={highlightRequiredFields ? requiredFieldErrors.billNo : undefined}
+                />
+                {renderDateField(
+                  'Bill Date *',
+                  'billDate',
+                  undefined,
+                  highlightRequiredFields ? requiredFieldErrors.billDate : undefined
+                )}
                 <Input label="Challan No." value={data.chNo} onChange={(v) => updateField('chNo', v as string)} />
                 {renderDateField('Challan Date', 'chDate')}
                 <Input label="PO No." value={data.poNo} onChange={(v) => updateField('poNo', v as string)} />
                 {renderDateField('PO Date', 'poDate')}
-                <Input label="Transport" value={data.transport} onChange={(v) => updateField('transport', v as string)} className="col-span-full" />
                 <Input label="LR No." value={data.lrNo} onChange={(v) => updateField('lrNo', v as string)} />
                 {renderDateField('LR Date', 'lrDate')}
+                <Input label="Transport" value={data.transport} onChange={(v) => updateField('transport', v as string)} className="col-span-full" />
               </div>
             </Section>
 
             <Section title="Client Details" icon="solar:user-id-linear">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Client Name" value={data.clientName} onChange={(v) => updateField('clientName', v as string)} className="col-span-full" />
+                <Input
+                  label="Client Name *"
+                  value={data.clientName}
+                  onChange={(v) => updateField('clientName', v as string)}
+                  className="col-span-full"
+                  error={highlightRequiredFields ? requiredFieldErrors.clientName : undefined}
+                />
                 <Textarea
-                  label="Street / building / area"
+                  label="Street / building / area *"
                   value={data.clientAddress}
                   onChange={(v) => updateField('clientAddress', v)}
                   className="col-span-full resize-none overflow-y-auto"
                   rows={2}
                   placeholder="Door no., street, area, landmark…"
+                  error={highlightRequiredFields ? requiredFieldErrors.clientAddress : undefined}
                 />
                 <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
@@ -390,7 +478,7 @@ export default function BillGenerator() {
                 <div className="col-span-full grid grid-cols-1 sm:grid-cols-[minmax(0,260px)_1fr] gap-3 items-end">
                   <div className="flex flex-col gap-2">
                     <label className="text-sm text-[var(--input-field-color)] font-medium leading-none">
-                      Country code
+                      Country code *
                     </label>
                     <div className="relative">
                       <select
@@ -407,10 +495,10 @@ export default function BillGenerator() {
                             updateField('clientMobileDialCode', v)
                           }
                         }}
-                        aria-invalid={clientDialCodeError ? true : undefined}
+                        aria-invalid={dialCodeErrorMerged ? true : undefined}
                         className={
                           'h-10 w-full cursor-pointer appearance-none rounded-md border border-[var(--brand-border)] bg-white py-2 pl-3 pr-9 text-sm text-zinc-900 outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white' +
-                          (clientDialCodeError
+                          (dialCodeErrorMerged
                             ? ' border-red-500 focus-visible:ring-red-500'
                             : '')
                         }
@@ -429,7 +517,7 @@ export default function BillGenerator() {
                       <div
                         className={
                           'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white overflow-hidden focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 focus-within:ring-offset-white' +
-                          (clientDialCodeError ? ' border-red-500 focus-within:ring-red-500' : '')
+                          (dialCodeErrorMerged ? ' border-red-500 focus-within:ring-red-500' : '')
                         }
                       >
                         <span className="flex items-center border-r border-[var(--brand-border)] bg-zinc-50 px-2.5 text-sm text-zinc-600">
@@ -450,12 +538,12 @@ export default function BillGenerator() {
                         />
                       </div>
                     ) : null}
-                    {clientDialCodeError ? (
-                      <p className="text-xs text-red-600 leading-snug">{clientDialCodeError}</p>
+                    {dialCodeErrorMerged ? (
+                      <p className="text-xs text-red-600 leading-snug">{dialCodeErrorMerged}</p>
                     ) : null}
                   </div>
                   <Input
-                    label="Mobile"
+                    label="Mobile *"
                     type="tel"
                     inputMode="numeric"
                     value={data.clientMobile}
@@ -465,7 +553,7 @@ export default function BillGenerator() {
                         normalizeNationalMobileInput(String(v), data.clientMobileDialCode)
                       )
                     }
-                    error={clientMobileError ?? undefined}
+                    error={mobileErrorMerged ?? undefined}
                     placeholder={
                       normalizeDialCodeInput(data.clientMobileDialCode) === INDIA_DIAL_CODE
                         ? '10-digit number (starts with 6-9)'
@@ -626,8 +714,15 @@ export default function BillGenerator() {
                             <Input
                               placeholder="Bags"
                               type="number"
+                              min={1}
+                              step={1}
                               value={item.bags}
-                              onChange={(v) => updateLineItem(item.id, 'bags', v as number)}
+                              onChange={(v) => {
+                                const n = Number(v)
+                                const bags =
+                                  !Number.isFinite(n) || n < 1 ? 1 : Math.floor(n)
+                                updateLineItem(item.id, 'bags', bags)
+                              }}
                             />
                           </div>
 
@@ -821,49 +916,55 @@ export default function BillGenerator() {
           </div>
           </div>
 
-          {/* RIGHT: PREVIEW */}
-          {showPreview && (
+          {/* RIGHT: PREVIEW — always mounted so width can animate; PDF still finds #invoice-preview */}
+          <div
+            className={`shrink-0 h-full min-h-0 overflow-hidden bg-[var(--brand-primary-soft)] transition-[width] duration-300 ease-out motion-reduce:transition-none ${
+              showPreview ? 'w-[55%] min-w-0' : 'w-0 min-w-0'
+            }`}
+            aria-hidden={!showPreview}
+          >
             <div
               data-lenis-scroll="true"
-              className="w-[55%] h-full min-h-0 overflow-y-auto overflow-x-hidden bg-[var(--brand-primary-soft)] touch-pan-y"
+              className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto touch-pan-y transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+                showPreview ? 'opacity-100' : 'pointer-events-none opacity-0 delay-0'
+              }`}
+              style={showPreview ? { transitionDelay: '40ms' } : undefined}
             >
-              <div className="flex min-h-full flex-col">
-                <div className="sticky top-0 z-10 border-b border-[var(--brand-border)] bg-white px-4 md:px-6 py-3 flex items-center justify-between">
-                  <h2 className="text-base font-semibold">Preview</h2>
-                  <div className="flex items-center gap-2">
-                    <ShadButton
-                      variant="outline"
-                      size="default"
-                      onClick={() => window.print()}
-                      className="h-8 border-[var(--brand-border)] bg-white px-3 text-zinc-700 hover:bg-zinc-50"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Print
-                    </ShadButton>
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <ShadButton
-                          variant="default"
-                          size="sm"
-                          disabled={isExporting}
-                          className="h-8 px-0 overflow-hidden bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white border border-[var(--brand-border)]"
-                        >
-                          <span className="px-3">{isExporting ? 'Downloading...' : 'Download'}</span>
-                        </ShadButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={exportExcel}>.xlsx</DropdownMenuItem>
-                        <DropdownMenuItem onClick={exportPDF}>.pdf</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-                <div className="p-4 md:p-8 flex flex-1 justify-center bg-[var(--brand-primary-soft)]">
-                  <BillTemplate data={data} calculations={calculations} />
+              <div className="sticky top-0 z-10 border-b border-[var(--brand-border)] bg-white px-4 md:px-6 py-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold">Preview</h2>
+                <div className="flex items-center gap-2">
+                  <ShadButton
+                    variant="outline"
+                    size="default"
+                    onClick={handlePrint}
+                    className="h-8 border-[var(--brand-border)] bg-white px-3 text-zinc-700 hover:bg-zinc-50"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print
+                  </ShadButton>
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                      <ShadButton
+                        variant="default"
+                        size="sm"
+                        disabled={isExporting}
+                        className="h-8 px-0 overflow-hidden bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white border border-[var(--brand-border)]"
+                      >
+                        <span className="px-3">{isExporting ? 'Downloading...' : 'Download'}</span>
+                      </ShadButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={exportExcel}>.xlsx</DropdownMenuItem>
+                      <DropdownMenuItem onClick={exportPDF}>.pdf</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
+              <div className="p-4 md:p-8 flex flex-1 justify-center items-start overflow-auto min-h-0 min-w-0 bg-[var(--brand-primary-soft)]">
+                <BillTemplate data={data} calculations={calculations} />
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
       {/* footer moved to app/layout.tsx */}

@@ -115,3 +115,57 @@ input[type="number"] {
 #invoice-preview * {
   color: #18181b;
 }
+
+/* Screen: always true A4 (210×297 mm); scroll parent instead of squashing the page */
+@media screen {
+  #invoice-preview.invoice-a4-page {
+    box-sizing: border-box;
+    width: 210mm;
+    min-width: 210mm;
+    max-width: none;
+    height: 297mm;
+    min-height: 297mm;
+    max-height: 297mm;
+    flex-shrink: 0;
+  }
+}
+
+/* Payment terms: always show brand (teal) border on the closed control */
+@layer components {
+  .app-payment-terms-select {
+    box-sizing: border-box;
+    height: 2.5rem;
+    width: 100%;
+    min-width: 0;
+    cursor: pointer;
+    appearance: none;
+    border-radius: 0.75rem;
+    border: 2px solid var(--brand-primary);
+    background-color: #fff;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #18181b;
+    outline: none;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .app-payment-terms-select:hover:not(:disabled) {
+    border-color: var(--brand-primary-hover);
+  }
+
+  .app-payment-terms-select:focus-visible {
+    border-color: var(--brand-primary);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 80%),
+      0 0 0 3px rgb(28 91 89 / 22%);
+  }
+
+  .app-payment-terms-select:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: var(--brand-border);
+  }
+}
