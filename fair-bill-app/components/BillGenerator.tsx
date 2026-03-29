@@ -4,9 +4,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   CalendarDays,
+  Check,
   ChevronDown,
-  Eye,
-  EyeOff,
   GripVertical,
   Printer,
   Trash2,
@@ -26,7 +25,18 @@ import {
 } from '@/lib/billing/billRequiredFields'
 import { calculateBillTotals } from '@/lib/billing/calculations'
 import { exportBillAsExcel, exportBillAsPdf } from '@/lib/billing/exports'
-import { loadPersistedBillFields, savePersistedBillFields } from '@/lib/billing/storage'
+import {
+  loadPersistedBillFields,
+  saveInvoiceFormDraft,
+  savePersistedBillFields,
+} from '@/lib/billing/storage'
+import {
+  getInvoiceSectionCompletionMap,
+  getNextInvoiceTabId,
+  getPreviousInvoiceTabId,
+  type InvoiceFormTabId,
+  isInvoiceTabId,
+} from '@/lib/billing/invoiceSectionCompletion'
 import { isIgstInterstateRule } from '@/lib/billing/taxRules'
 import {
   PAYMENT_TERMS_CUSTOM_VALUE,
@@ -55,7 +65,7 @@ import {
   normalizeDialCodeInput,
   normalizeNationalMobileInput,
 } from '@/lib/billing/indianMobile'
-import { formatBillDateDisplay } from '@/lib/utils'
+import { cn, formatBillDateDisplay } from '@/lib/utils'
 import { Input, Textarea, Section, Button } from '@/components/ui'
 import { BillTemplate } from '@/components/BillTemplate'
 import { Calendar } from '@/components/ui/calendar'
@@ -66,6 +76,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { InvoiceFormActionsBar } from '@/components/InvoiceFormActionsBar'
+import { InvoiceSectionNav } from '@/components/InvoiceSectionNav'
+
+const invoiceFormTabTriggerClassName =
+  'flex-none gap-1.5 data-[state=active]:bg-primary dark:data-[state=active]:bg-primary data-[state=active]:text-primary-foreground dark:data-[state=active]:text-primary-foreground dark:data-[state=active]:border-transparent'
 
 /** Fixed min column widths — avoids 18× equal fr columns crushing inputs (overlap). */
 const LINE_ITEMS_GRID_STYLE: React.CSSProperties = {
@@ -81,6 +97,7 @@ export default function BillGenerator() {
   const [openDateField, setOpenDateField] = useState<keyof BillData | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [highlightRequiredFields, setHighlightRequiredFields] = useState(false)
+  const [activeInvoiceTab, setActiveInvoiceTab] = useState<InvoiceFormTabId>('invoice')
 
   const handleReset = () => {
     setIsExporting(false)
@@ -88,6 +105,7 @@ export default function BillGenerator() {
     setDragOverLineItemId(null)
     setOpenDateField(null)
     setHighlightRequiredFields(false)
+    setActiveInvoiceTab('invoice')
     setData(getInitialBillData())
   }
 
@@ -305,6 +323,23 @@ export default function BillGenerator() {
 
   const requiredFieldErrors = useMemo(() => validateBillRequiredFields(data), [data])
 
+  const sectionCompletion = useMemo(() => getInvoiceSectionCompletionMap(data), [data])
+
+  const handleInvoiceSaveAndNext = () => {
+    saveInvoiceFormDraft(data)
+    const next = getNextInvoiceTabId(activeInvoiceTab)
+    if (next) setActiveInvoiceTab(next)
+  }
+
+  const handleInvoiceSectionBack = () => {
+    const prev = getPreviousInvoiceTabId(activeInvoiceTab)
+    if (prev) setActiveInvoiceTab(prev)
+  }
+
+  const handleInvoiceSaveProgress = () => {
+    saveInvoiceFormDraft(data)
+  }
+
   useEffect(() => {
     if (!highlightRequiredFields) return
     if (!hasBillRequiredFieldErrors(requiredFieldErrors)) {
@@ -382,19 +417,107 @@ export default function BillGenerator() {
         <div className="flex-1 min-h-0 flex min-w-0">
           {/* LEFT: FORM */}
           <div
-            data-lenis-scroll="true"
-            className={`shrink-0 h-full min-h-0 overflow-y-auto overflow-x-hidden hide-scrollbar bg-white pt-5 px-0 pb-0 md:pt-6 md:px-0 md:pb-0 touch-pan-y transition-[width] duration-300 ease-out motion-reduce:transition-none ${
+            className={`flex min-h-0 shrink-0 flex-col bg-white touch-pan-y transition-[width] duration-300 ease-out motion-reduce:transition-none ${
               showPreview
-                ? 'w-[45%] min-w-0 border-r border-[var(--brand-border)]'
-                : 'w-full min-w-0'
+                ? 'h-full w-[45%] min-w-0 border-r border-[var(--brand-border)]'
+                : 'h-full w-full min-w-0'
             }`}
           >
-          <div className="w-full flex flex-col gap-3 px-5 md:px-6">
-            <div className="mb-1">
+            <div
+              data-lenis-scroll="true"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar pt-5 md:pt-6"
+            >
+              <div className="flex w-full flex-col gap-4 px-5 pb-4 md:px-6">
+            <div className="shrink-0">
               <h1 className="text-2xl font-semibold">Create New Invoice</h1>
               <p className="text-sm text-zinc-500">Fill in invoice details</p>
             </div>
 
+            <Tabs
+              value={activeInvoiceTab}
+              onValueChange={(v) => {
+                if (isInvoiceTabId(v)) setActiveInvoiceTab(v)
+              }}
+              className="flex w-full min-w-0 flex-col gap-3"
+            >
+              <div className="w-full min-w-0 max-w-full overflow-x-auto pb-0.5">
+                <TabsList className="inline-flex h-auto min-h-9 w-fit max-w-full shrink-0 flex-wrap justify-start gap-1 border border-[var(--brand-border)] bg-background p-1 !h-auto rounded-lg">
+                  <TabsTrigger value="invoice" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion.invoice ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'invoice' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    Invoice
+                  </TabsTrigger>
+                  <TabsTrigger value="client" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion.client ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'client' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    Client
+                  </TabsTrigger>
+                  <TabsTrigger value="line-items" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion['line-items'] ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'line-items' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    Line items
+                  </TabsTrigger>
+                  <TabsTrigger value="totals" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion.totals ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'totals' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    {'Totals & taxes'}
+                  </TabsTrigger>
+                  <TabsTrigger value="payment" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion.payment ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'payment' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    Payment
+                  </TabsTrigger>
+                  <TabsTrigger value="notes" className={invoiceFormTabTriggerClassName}>
+                    {sectionCompletion.notes ? (
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0',
+                          activeInvoiceTab === 'notes' ? 'text-primary-foreground' : 'text-emerald-600'
+                        )}
+                        aria-hidden
+                      />
+                    ) : null}
+                    Notes
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="invoice" className="mt-0 outline-none">
             <Section title="Invoice Details">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
@@ -418,7 +541,17 @@ export default function BillGenerator() {
                 <Input label="Transport" value={data.transport} onChange={(v) => updateField('transport', v as string)} className="col-span-full" />
               </div>
             </Section>
+            <InvoiceSectionNav
+              showBack={false}
+              isLastStep={false}
+              canProceed={sectionCompletion.invoice}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
+              <TabsContent value="client" className="mt-0 outline-none">
             <Section title="Client Details" icon="solar:user-id-linear">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
@@ -566,7 +699,17 @@ export default function BillGenerator() {
                 </div>
               </div>
             </Section>
+            <InvoiceSectionNav
+              showBack
+              isLastStep={false}
+              canProceed={sectionCompletion.client}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
+              <TabsContent value="line-items" className="mt-0 outline-none">
             <Section title="Line Items" icon="solar:box-linear">
               <div className="border border-[var(--brand-border)] rounded-lg overflow-hidden bg-white">
                 <div className="overflow-x-auto overscroll-x-auto touch-pan-x">
@@ -798,7 +941,17 @@ export default function BillGenerator() {
                 </div>
               </div>
             </Section>
+            <InvoiceSectionNav
+              showBack
+              isLastStep={false}
+              canProceed={sectionCompletion['line-items']}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
+              <TabsContent value="totals" className="mt-0 outline-none">
             <Section title="Totals & Taxes" icon="solar:calculator-linear">
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Freight Charges (₹)" type="number" value={data.freight} onChange={(v) => updateField('freight', v as number)} />
@@ -838,7 +991,17 @@ export default function BillGenerator() {
                 />
               </div>
             </Section>
+            <InvoiceSectionNav
+              showBack
+              isLastStep={false}
+              canProceed={sectionCompletion.totals}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
+              <TabsContent value="payment" className="mt-0 outline-none">
             <Section title="Payment" icon="solar:card-linear">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-full flex flex-col gap-2">
@@ -877,7 +1040,17 @@ export default function BillGenerator() {
                 </div>
               </div>
             </Section>
+            <InvoiceSectionNav
+              showBack
+              isLastStep={false}
+              canProceed={sectionCompletion.payment}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
+              <TabsContent value="notes" className="mt-0 outline-none">
             <Section title="Notes" icon="solar:notes-linear">
               <Textarea
                 label="Additional notes"
@@ -888,32 +1061,26 @@ export default function BillGenerator() {
                 placeholder="Optional — delivery instructions, references, or other remarks (shown on the invoice when filled)"
               />
             </Section>
+            <InvoiceSectionNav
+              showBack
+              isLastStep
+              canProceed={sectionCompletion.notes}
+              onBack={handleInvoiceSectionBack}
+              onSaveAndNext={handleInvoiceSaveAndNext}
+              onSaveProgress={handleInvoiceSaveProgress}
+            />
+              </TabsContent>
 
-          </div>
+            </Tabs>
 
-          <div className="sticky bottom-0 z-20 w-full px-3 py-3 border-t border-[var(--brand-border)] bg-white/95 backdrop-blur flex justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={handleReset}
-              className="h-7 px-3 text-sm justify-center bg-white text-zinc-900 hover:bg-zinc-50 border border-[var(--brand-border)]"
-            >
-              Clear
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowPreview((prev) => !prev)}
-              className="h-7 px-3 text-sm justify-center border-[var(--brand-border)] text-zinc-900 hover:bg-zinc-100"
-              icon={
-                showPreview ? (
-                  <EyeOff className="h-3.5 w-3.5 text-zinc-600" aria-hidden />
-                ) : (
-                  <Eye className="h-3.5 w-3.5 text-zinc-600" aria-hidden />
-                )
-              }
-            >
-              {showPreview ? 'Hide Preview' : 'Show Preview'}
-            </Button>
-          </div>
+              </div>
+            </div>
+
+            <InvoiceFormActionsBar
+              showPreview={showPreview}
+              onTogglePreview={() => setShowPreview((prev) => !prev)}
+              onClear={handleReset}
+            />
           </div>
 
           {/* RIGHT: PREVIEW — always mounted so width can animate; PDF still finds #invoice-preview */}
@@ -937,10 +1104,9 @@ export default function BillGenerator() {
                     variant="outline"
                     size="default"
                     onClick={handlePrint}
-                    className="h-8 border-[var(--brand-border)] bg-white px-3 text-zinc-700 hover:bg-zinc-50"
+                    className="h-8 border-[var(--brand-border)] bg-white px-2 text-zinc-700 hover:bg-zinc-50"
                   >
                     <Printer className="h-4 w-4" />
-                    Print
                   </ShadButton>
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>

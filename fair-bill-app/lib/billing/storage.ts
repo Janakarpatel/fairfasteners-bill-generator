@@ -1,6 +1,18 @@
 import { BillData } from '@/lib/types'
 import { BILL_STORAGE_KEY } from '@/lib/billing/constants'
 
+/** Full form draft for wizard Save & Next (separate from terms-only persistence). */
+export const INVOICE_FORM_DRAFT_KEY = 'fairInvoiceFormDraft'
+
+export function saveInvoiceFormDraft(data: BillData): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(INVOICE_FORM_DRAFT_KEY, JSON.stringify(data))
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
 type PersistedBillFields = Pick<BillData, 'termsAndConditions'>
 
 /**

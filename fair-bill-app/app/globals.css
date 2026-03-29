@@ -10,6 +10,28 @@
   --brand-border: #E5E5E5;
   --brand-primary-soft: #F0F0F0;
   --input-field-color: rgb(129, 131, 143);
+  /* shadcn/ui semantic tokens (tabs & shared UI) */
+  --background: #ffffff;
+  --foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --primary: var(--brand-primary);
+  --primary-foreground: #fafafa;
+  --border: var(--brand-border);
+  --input: var(--brand-border);
+  --ring: #a1a1aa;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 /* Custom Scrollbar */
