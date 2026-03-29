@@ -116,6 +116,11 @@ input[type="number"] {
   color: #18181b;
 }
 
+/* Rupee amounts only — tabular figures; JetBrains from next/font class on `.invoice-numeric` spans */
+#invoice-preview .invoice-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Screen: always true A4 (210×297 mm); scroll parent instead of squashing the page */
 @media screen {
   #invoice-preview.invoice-a4-page {

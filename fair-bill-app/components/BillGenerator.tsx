@@ -413,9 +413,17 @@ export default function BillGenerator() {
                 {renderDateField('Challan Date', 'chDate')}
                 <Input label="PO No." value={data.poNo} onChange={(v) => updateField('poNo', v as string)} />
                 {renderDateField('PO Date', 'poDate')}
-                <Input label="LR No." value={data.lrNo} onChange={(v) => updateField('lrNo', v as string)} />
-                {renderDateField('LR Date', 'lrDate')}
-                <Input label="Transport" value={data.transport} onChange={(v) => updateField('transport', v as string)} className="col-span-full" />
+                <div className="col-span-full w-full min-w-0">
+                  <Input
+                    label="Transport"
+                    value={data.transport}
+                    onChange={(v) => updateField('transport', v as string)}
+                  />
+                </div>
+                <div className="col-span-full grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Input label="LR No." value={data.lrNo} onChange={(v) => updateField('lrNo', v as string)} />
+                  {renderDateField('LR Date', 'lrDate')}
+                </div>
               </div>
             </Section>
 
@@ -570,15 +578,15 @@ export default function BillGenerator() {
             <Section title="Line Items" icon="solar:box-linear">
               <div className="border border-[var(--brand-border)] rounded-lg overflow-hidden bg-white">
                 <div className="overflow-x-auto overscroll-x-auto touch-pan-x">
-                  <div className="min-w-[56rem]">
+                  <div className="min-w-fit">
                     {/* Header */}
                     <div
-                      className="grid gap-x-3 gap-y-1 px-3 py-2.5 text-xs font-medium text-[var(--input-field-color)] bg-zinc-50 border-b border-[var(--brand-border)] items-end"
+                      className="w-full grid gap-x-3 gap-y-1 px-3 py-2.5 text-xs font-medium text-[var(--input-field-color)] bg-[var(--brand-primary-soft)] border-b border-[var(--brand-border)] items-end"
                       style={LINE_ITEMS_GRID_STYLE}
                     >
                       <div className="min-h-[2.5rem]" aria-hidden />
                       <div className="min-w-0 pb-0.5">
-                        <div className="font-medium text-zinc-700">Description of Goods</div>
+                        {/* <div className="font-medium text-zinc-700">Description of Goods</div> */}
                         <div className="mt-1 grid grid-cols-2 gap-3 text-[10px] uppercase tracking-wide text-zinc-500">
                           <span>Item</span>
                           <span>Size</span>
@@ -696,7 +704,7 @@ export default function BillGenerator() {
                               </div>
                             ) : item.goodsProductId ? (
                               <p className="text-[11px] leading-tight text-zinc-500 line-clamp-2">
-                                <span className="font-medium text-zinc-400">On invoice: </span>
+                                <span className="font-medium text-zinc-400">On invoice (Description of Goods): </span>
                                 {item.description || '—'}
                               </p>
                             ) : null}
@@ -737,7 +745,7 @@ export default function BillGenerator() {
                             />
                           </div>
 
-                          <div className="relative min-w-0 w-full self-stretch">
+                          <div className="relative min-w-0 w-full self-start">
                             <select
                               value={item.quantityUnit}
                               onChange={(e) =>
@@ -747,13 +755,16 @@ export default function BillGenerator() {
                                   e.target.value as 'KG' | 'PC'
                                 )
                               }
-                              className="box-border h-10 w-full min-w-0 cursor-pointer appearance-none rounded-md border border-[var(--brand-border)] bg-white py-2 pl-2.5 pr-8 text-sm text-zinc-900 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                              className="box-border h-10 w-full min-w-0 cursor-pointer appearance-none rounded-md border border-[var(--brand-border)] bg-white py-2 pl-2.5 pr-9 text-sm leading-none text-zinc-900 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                               aria-label="Unit (KG or PC)"
                             >
                               <option value="PC">PC</option>
                               <option value="KG">KG</option>
                             </select>
-                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                            <ChevronDown
+                              className="pointer-events-none absolute right-2.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-zinc-500"
+                              aria-hidden
+                            />
                           </div>
 
                           <div className="min-w-0 w-full">

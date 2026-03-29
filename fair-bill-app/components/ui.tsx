@@ -90,12 +90,70 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   error?: string
 }
 
+const NUMERIC_INPUT_PATTERN = /^-?\d*\.?\d*$/
+
+function numericDraftToValue(raw: string): number {
+  const t = raw.trim()
+  if (t === '' || t === '-' || t === '.' || t === '-.') return 0
+  const n = parseFloat(t)
+  return Number.isNaN(n) ? 0 : n
+}
+
+/** True when the field shows a numeric zero — on focus we clear the input so typing starts fresh; blur restores 0 if left empty. */
+function isNumericZeroDisplay(s: string): boolean {
+  const t = s.trim()
+  if (t === '') return false
+  const n = parseFloat(t)
+  return !Number.isNaN(n) && n === 0
+}
+
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = 'text', label, disabled, value, onChange, error, ...props }, ref) => {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  ({ className, type = 'text', label, disabled, value, onChange, error, onFocus, onBlur, ...props }, ref) => {
+    const isNumeric = type === 'number'
+
+    const propDisplay = React.useMemo(() => {
+      if (value === undefined || value === null || value === '') return ''
+      return String(value)
+    }, [value])
+
+    const [numericFocused, setNumericFocused] = React.useState(false)
+    const [numericDraft, setNumericDraft] = React.useState('')
+
+    const numericDisplay = numericFocused ? numericDraft : propDisplay
+
+    const handleNumericFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setNumericFocused(true)
+      // Click/focus on 0: show empty so the user can type; blur with no input restores 0.
+      setNumericDraft(isNumericZeroDisplay(propDisplay) ? '' : propDisplay)
+      onFocus?.(e)
+    }
+
+    const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.value
+      if (raw !== '' && !NUMERIC_INPUT_PATTERN.test(raw)) return
+      setNumericDraft(raw)
+      if (raw === '' || raw === '-' || raw === '.' || raw === '-.' || raw.endsWith('.')) {
+        return
+      }
+      const n = parseFloat(raw)
+      if (!Number.isNaN(n) && onChange) {
+        onChange(n)
+      }
+    }
+
+    const handleNumericBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setNumericFocused(false)
+      const final = numericDraftToValue(numericDraft)
       if (onChange) {
-        const newValue = type === 'number' ? Number(e.target.value) : e.target.value
-        onChange(newValue)
+        onChange(final)
+      }
+      setNumericDraft('')
+      onBlur?.(e)
+    }
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (onChange) {
+        onChange(e.target.value)
       }
     }
 
@@ -106,20 +164,41 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
-          type={type}
-          disabled={disabled}
-          value={value ?? ''}
-          onChange={handleChange}
-          aria-invalid={error ? true : undefined}
-          className={cn(
-            'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-500 focus-visible:ring-red-500',
-            className
-          )}
-          ref={ref}
-          {...props}
-        />
+        {isNumeric ? (
+          <input
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            disabled={disabled}
+            value={numericDisplay}
+            onChange={handleNumericChange}
+            onFocus={handleNumericFocus}
+            onBlur={handleNumericBlur}
+            aria-invalid={error ? true : undefined}
+            className={cn(
+              'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
+              error && 'border-red-500 focus-visible:ring-red-500',
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+        ) : (
+          <input
+            type={type}
+            disabled={disabled}
+            value={value ?? ''}
+            onChange={handleTextChange}
+            aria-invalid={error ? true : undefined}
+            className={cn(
+              'flex h-10 w-full rounded-md border border-[var(--brand-border)] bg-white px-3 py-2 text-sm text-zinc-900 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50',
+              error && 'border-red-500 focus-visible:ring-red-500',
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+        )}
         {error ? <p className="text-xs text-red-600 leading-snug">{error}</p> : null}
       </div>
     )

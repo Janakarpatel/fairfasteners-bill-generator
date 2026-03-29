@@ -10,6 +10,11 @@ import { toSingleLineDescription } from '@/lib/catalog/goodsCatalog'
 import { formatQuantityUnitLabel } from '@/lib/billing/quantityUnit'
 import { isIgstInterstateRule } from '@/lib/billing/taxRules'
 import staticText from '@/lib/static-text.json'
+import { jetbrainsMono } from '@/lib/fonts'
+import { cn } from '@/lib/utils'
+
+/** JetBrains Mono only for rupee / `formatCurrency` amounts (not dates, refs, qty, %, or codes). */
+const money = cn(jetbrainsMono.className, 'invoice-numeric')
 
 /** Single grid for header, line rows, and filler — column lines stay aligned (table + fr grid did not). */
 const LINE_ITEM_GRID_COLS =
@@ -109,16 +114,16 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <span className="font-medium">PO Date:</span> {formatBillDateDisplay(data.poDate)}
             </div>
           </div>
-          <div className="grid grid-cols-2 border-b border-zinc-900">
+          <div className="border-b border-zinc-900 p-2">
+            <span className="font-medium">Transport:</span> {data.transport}
+          </div>
+          <div className="grid grid-cols-2">
             <div className="p-2 border-r border-zinc-900">
               <span className="font-medium">LR No:</span> {data.lrNo}
             </div>
             <div className="p-2">
               <span className="font-medium">LR Date:</span> {formatBillDateDisplay(data.lrDate)}
             </div>
-          </div>
-          <div className="p-2">
-            <span className="font-medium">Transport:</span> {data.transport}
           </div>
         </div>
       </div>
@@ -194,10 +199,10 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
               <div
                 className={`p-2 border-r border-zinc-900 text-right whitespace-nowrap align-top ${rowBorder}`}
               >
-                {formatCurrency(item.rate).replace('₹', '')}
+                <span className={money}>{formatCurrency(item.rate).replace('₹', '')}</span>
               </div>
               <div className={`p-2 border-b border-zinc-900 text-right align-top ${rowBorder}`}>
-                {formatCurrency(item.amount).replace('₹', '')}
+                <span className={money}>{formatCurrency(item.amount).replace('₹', '')}</span>
               </div>
             </React.Fragment>
           )
@@ -256,39 +261,39 @@ export const BillTemplate = ({ data, calculations }: BillTemplateProps) => {
         <div className="col-span-5">
           <div className="flex justify-between p-2 border-b border-zinc-200">
             <span className="font-medium text-zinc-600">Sub Total</span>
-            <span>{formatCurrency(calculations.subTotal)}</span>
+            <span className={money}>{formatCurrency(calculations.subTotal)}</span>
           </div>
           {data.freight > 0 && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">Freight</span>
-              <span>{formatCurrency(data.freight)}</span>
+              <span className={money}>{formatCurrency(data.freight)}</span>
             </div>
           )}
           {!isIgstInterstateRule(data.igstRate) && data.cgstRate > 0 && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">CGST @ {data.cgstRate}%</span>
-              <span>{formatCurrency(calculations.cgstAmount)}</span>
+              <span className={money}>{formatCurrency(calculations.cgstAmount)}</span>
             </div>
           )}
           {!isIgstInterstateRule(data.igstRate) && data.sgstRate > 0 && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">SGST @ {data.sgstRate}%</span>
-              <span>{formatCurrency(calculations.sgstAmount)}</span>
+              <span className={money}>{formatCurrency(calculations.sgstAmount)}</span>
             </div>
           )}
           {isIgstInterstateRule(data.igstRate) && (
             <div className="flex justify-between p-2 border-b border-zinc-200">
               <span className="font-medium text-zinc-600">IGST @ {data.igstRate}%</span>
-              <span>{formatCurrency(calculations.igstAmount)}</span>
+              <span className={money}>{formatCurrency(calculations.igstAmount)}</span>
             </div>
           )}
           <div className="flex justify-between p-2 border-b border-zinc-200">
             <span className="font-medium text-zinc-600">Round off</span>
-            <span>{formatCurrency(calculations.roundOff)}</span>
+            <span className={money}>{formatCurrency(calculations.roundOff)}</span>
           </div>
           <div className="flex justify-between p-2 bg-zinc-50 font-semibold text-[13px]">
             <span>Grand Total</span>
-            <span>{formatCurrency(calculations.grandTotal)}</span>
+            <span className={money}>{formatCurrency(calculations.grandTotal)}</span>
           </div>
         </div>
       </div>

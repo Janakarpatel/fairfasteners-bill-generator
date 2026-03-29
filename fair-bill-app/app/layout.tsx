@@ -3,6 +3,7 @@ import { Geist } from 'next/font/google'
 import './globals.css'
 import LenisScroll from '@/components/LenisScroll'
 import staticText from '@/lib/static-text.json'
+import { jetbrainsMono } from '@/lib/fonts'
 
 const geist = Geist({ subsets: ['latin'] })
 
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head></head>
-      <body className={`${geist.className} min-h-screen text-sm tracking-tight bg-white text-zinc-900 antialiased`}>
+      <body
+        className={`${geist.className} ${jetbrainsMono.variable} min-h-screen text-sm tracking-tight bg-white text-zinc-900 antialiased`}
+      >
         <LenisScroll />
         {children}
         <div className="bg-[var(--brand-primary)] px-4 py-4 h-full">
